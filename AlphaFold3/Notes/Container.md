@@ -8,6 +8,8 @@ Source repo: https://github.com/google-deepmind/alphafold3
 
 I've applied for access to the model parameters so that I can run tests. I am not allowed to share them with the rest of the Organisation because someone higher up than me needs to have the authority to do that.
 
+Created `Scripts/download_databases.sh` to download databases to ACFS.
+
 Need to apply fixes to Dockerfile:
 
 1. Use apt-get instead of apt (this is the intended tool for scripts)
@@ -25,3 +27,19 @@ Now running `docker build -t alphafold3 .`
 That doesn't work so you have to go up a directory and do:
 
 `docker build -t alphafold3 -f docker/Dockerfile .`
+
+This got OOM killed.
+
+Boosted RAM of VM to 26GiB.
+
+Container built.
+
+Exported with `docker save alphafold3 -o alphafold3-proteinshake.tar`
+
+Gzipped the resulting `.tar` and checksummed:
+
+```
+4d6e7b9c47ec89470c27c57df7bde104f5a9b7729dd0bc4eaf3abce93c4574ccd6daaba8828aca37fb165b7376ad150247cd4c76e2aa73048a7bba06e2a18eb4  alphafold3-proteinshake.tar.gz
+```
+
+I'll put that somewhere so that I can install it on something once I have the weights + once the databases have downloaded.
