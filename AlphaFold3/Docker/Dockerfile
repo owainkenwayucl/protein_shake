@@ -23,7 +23,7 @@ RUN apt-get update --quiet \
 # Get apt repository of specific Python versions. Then install Python. Tell APT
 # this isn't an interactive TTY to avoid timezone prompt when installing.
 RUN add-apt-repository ppa:deadsnakes/ppa \
-    && DEBIAN_FRONTEND=noninteractive apt install --yes --quiet python3.11 python3-pip python3.11-venv python3.11-dev
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet python3.11 python3-pip python3.11-venv python3.11-dev
 RUN python3.11 -m venv /alphafold3_venv
 ENV PATH="/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
