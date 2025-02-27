@@ -71,3 +71,41 @@ https://github.com/baker-laboratory/RoseTTAFold-All-Atom/issues/164
 I think this may be contradictory instructions, as signalp is included in the `environment.yaml`??
 
 OK, I think what they want is the *weights* from the downloaded package added to the version of the package in the menv.
+
+No, despite being in the `environment.yaml` it's not installed!?!?
+
+Well it's not according to `pip` and it's not in site-packages but `conda list` thinks its installed.
+
+Uh...
+
+```
+find . | grep signalp6
+./conda-meta/signalp6-6.0g-1.json
+./share/signalp6-6.0g-1
+./share/signalp6-6.0g-1/test_set.fasta
+./share/signalp6-6.0g-1/unregister.sh
+./share/signalp6-6.0g-1/placeholder.sh
+./share/signalp6-6.0g-1/register.sh
+./share/signalp6-6.0g-1/signalp6
+./share/signalp6-6.0g-1/signalp
+./bin/signalp6-register
+./bin/.signalp6-pre-unlink.sh
+./bin/signalp6
+./bin/.signalp6-post-link.sh
+```
+
+Re-reading the instructions, they mean *literally* run
+
+```
+signalp6-register signalp-6.0h.fast.tar.gz
+```
+
+I do not like this output.
+
+Presumably I have to build on a GPU node...
+
+```
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/signalp/model_weights
+Converting to CPU.
+Converting distilled_model_signalp6.pt .
+```
