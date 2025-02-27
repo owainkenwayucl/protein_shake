@@ -39,4 +39,6 @@ source /home/uccaoke/Scratch/miniforge3/etc/profile.d/mamba.sh
 
 4. Cloned Repo
 
-5. 
+5. `CONDA_OVERRIDE_CUDA="11.8" mamba env create -f environment.yaml`
+
+The `CONDA_OVERRIDE_CUDA="11.8"` is required because the login node does not have a GPU so mamba fails to dependency checks for Tensorflow.
