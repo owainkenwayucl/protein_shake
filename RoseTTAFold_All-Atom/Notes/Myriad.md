@@ -67,3 +67,7 @@ Note that this appears to install a different version of the Cuda run-time into 
 This seems very bad so I think I may have to start again and have a different (venv?) for signalp?
 
 https://github.com/baker-laboratory/RoseTTAFold-All-Atom/issues/164
+
+I think this may be contradictory instructions, as signalp is included in the `environment.yaml`??
+
+OK, I think what they want is the *weights* from the downloaded package added to the version of the package in the menv.
