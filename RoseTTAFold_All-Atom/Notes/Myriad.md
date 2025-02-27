@@ -55,3 +55,15 @@ cd ../../
 ```
 
 7. signalp6 - I've registered for the software and downloaded the repo. Now I need to understand the install instructions which make no sense.
+
+Right - so the tarball is a copy of a python package. *Its* instructions say to install it to our menv with `pip`
+
+```
+pip install signalp-6-package/  
+```
+
+Note that this appears to install a different version of the Cuda run-time into the menv which is super interesting and will cause no problems later, as well as downgrading torch to 1.13.1
+
+This seems very bad so I think I may have to start again and have a different (venv?) for signalp?
+
+https://github.com/baker-laboratory/RoseTTAFold-All-Atom/issues/164
