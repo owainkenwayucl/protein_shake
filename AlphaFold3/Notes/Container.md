@@ -46,3 +46,38 @@ I'll put that somewhere so that I can install it on something once I have the we
 
 As part of this I've discovered that Myriad + Kathleen are just about the only machines at UCL that can't see my Condenser S3.  Networks.
 
+--- Update 22:04 on Friday 28th of February in the year of our Lord Two Thousand and Twenty Five.
+
+Google sent me the Weights today so I've put them on the ACFS.
+
+Since I was well enough to be back on campus I was able to use my laptop as an in-between to copy the Container to the ACFS as well (due to the network problem).
+
+I've converted the Container to a `.sif` container (and put it in ACFS).
+
+I realised that the database files are compressed with "Zstandard" which is some Facebook compression tool. I had to compile and install it which was a PITA because it uses CMake in an unusual and creative way.
+
+I've set a job off on Myriad decompressing them to scratch:
+
+```
+#!/bin/bash -l
+
+#$ -l mem=5G
+#$ -l h_rt=48:0:0
+
+#$ -N AF3_DB_decompress
+
+#$ -cwd
+
+module load zstd
+
+cp ${HOME}/ACFS/Datasets/AlphaFold3/*.zst .
+
+for a in $(ls *.zst)
+do
+        unzstd --rm ${a}
+done
+```
+
+I copy them to Scratch first because `unzstd` decompresses files to the directory the `.zst` is in, seems to have no way of setting an output directory and of course the ACFS is read only on compute nodes. The `--rm` flag should delete the `.zst` files after decompressing them.
+
+Running dangerously close to my quota on basically all filesystems at this point.

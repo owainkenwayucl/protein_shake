@@ -109,3 +109,7 @@ Presumably I have to build on a GPU node...
 Converting to CPU.
 Converting distilled_model_signalp6.pt .
 ```
+
+--- Update 22:04 on Friday 28th of February in the year of our Lord Two Thousand and Twenty Five.
+
+I've got an interactive job running on a GPU node so re-running steps 5. onwards (not setting that CONDA_OVERRIDE_CUDA variable since we have a GPU in this box).
