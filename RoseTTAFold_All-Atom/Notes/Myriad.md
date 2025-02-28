@@ -122,6 +122,32 @@ Converting to CPU.
 Converting distilled_model_signalp6.pt .
 ```
 
+FWIW:
+
+```
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > nvidia-smi
+Fri Feb 28 23:08:28 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           Off |   00000000:58:00.0 Off |                    0 |
+| N/A   35C    P0             37W /  250W |       1MiB /  32768MiB |      1%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+```
+
 That's done.
 
 As required in the install instructions: 
