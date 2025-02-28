@@ -203,7 +203,7 @@ That Wiki page refers both to the https://wwwuser.gwdguser.de/~compbiol/data/csb
 
 Interestingly, this is itself a fork of https://github.com/cangermueller/csblast, which is ahead by three commits which are updates to the readme to say it depends on some godawful Google software.
 
-So on a whim, I looked and csblast is in bioconda, which is a channel they use in the original mamba setup. FFS
+So on a whim, I looked and csblast is in bioconda, which is a channel they use in the original mamba setup.
 
 ```
 (RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > mamba search bioconda::csblast
