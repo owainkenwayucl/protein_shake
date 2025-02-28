@@ -210,3 +210,16 @@ ln -s ${CONDA_PREFIX}/bin/csbuild csblast-2.2.3/bin
 ```
 
 Inside the RoseTTAFold-All-Atom directory.
+
+```
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > find csblast-2.2.3/
+csblast-2.2.3/
+csblast-2.2.3/data
+csblast-2.2.3/data/K4000.crf
+csblast-2.2.3/data/K4000.lib
+csblast-2.2.3/bin
+csblast-2.2.3/bin/csblast
+csblast-2.2.3/bin/csbuild
+```
+
+Sweet!
