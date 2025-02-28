@@ -121,3 +121,92 @@ Ok interesting, it's still doing:
 Converting to CPU.
 Converting distilled_model_signalp6.pt .
 ```
+
+That's done.
+
+As required in the install instructions: 
+
+```
+mv $CONDA_PREFIX/lib/python3.10/site-packages/signalp/model_weights/distilled_model_signalp6.pt $CONDA_PREFIX/lib/python3.10/site-packages/signalp/model_weights/ensemble_model_signalp6.pt
+```
+
+Learned my lesson: do not question.
+
+And then of course I question - the last install step says to "run `bash install_dependencies.sh`". That makes me uncomfy. What does the script do?
+
+```
+#!/bin/bash
+# From: https://github.com/RosettaCommons/RoseTTAFold
+
+# install external program not supported by conda installation
+case "$(uname -s)" in
+    Linux*)     platform=linux;;
+    Darwin*)    platform=macosx;;
+    *)          echo "unsupported OS type. exiting"; exit 1
+esac
+echo "Installing dependencies for ${platform}..."
+
+# the cs-blast platform descriptoin includes the width of memory addresses
+# we expect a 64-bit operating system
+if [[ ${platform} == "linux" ]]; then
+    platform=${platform}64
+fi
+
+# download cs-blast
+echo "Downloading cs-blast ..."
+wget http://wwwuser.gwdg.de/~compbiol/data/csblast/releases/csblast-2.2.3_${platform}.tar.gz -O csblast-2.2.3.tar.gz
+mkdir -p csblast-2.2.3
+tar xf csblast-2.2.3.tar.gz -C csblast-2.2.3 --strip-components=1
+```
+
+Right, so basically it works out if you are on a Mac or on Linux and then unpacks that the appropriate version of `csblast-2.2.3.tar.gz`
+
+We can not like this for various reasons - we are downloading a random binary and running it, but to add to that, it's over an http link.
+
+Note if we modify that link to https it works fine:
+
+```
+wget https://wwwuser.gwdg.de/~compbiol/data/csblast/releases/csblast-2.2.3_linux64.tar.gz
+```
+
+This makes me generally unhappy.
+
+It appears csblast is this: https://en.wikipedia.org/wiki/CS-BLAST
+
+That Wiki page refers both to the https://wwwuser.gwdguser.de/~compbiol/data/csblast/releases/ URL which is similar but crucially not the same as the above and a GitHub Repo https://github.com/soedinglab/csblast. On investigation, https://wwwuser.gwdg.de/ redirects to https://wwwuser.gwdguser.de/ which is fine and in no way upsetting at 22:36 on a Friday.
+
+Interestingly, this is itself a fork of https://github.com/cangermueller/csblast, which is ahead by three commits which are updates to the readme to say it depends on some godawful Google software.
+
+So on a whim, I looked and csblast is in bioconda, which is a channel they use in the original mamba setup. FFS
+
+```
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > mamba search bioconda::csblast
+Loading channels: done
+# Name                       Version           Build  Channel             
+csblast                        2.2.3      h4ac6f70_3  bioconda            
+csblast                        2.2.3      h7d875b9_0  bioconda            
+csblast                        2.2.3      h9948957_4  bioconda            
+csblast                        2.2.3      h9f5acd7_1  bioconda            
+csblast                        2.2.3      h9f5acd7_2  bioconda            
+```
+
+So I did
+
+```
+mamba install bioconda::csblast
+```
+
+This slightly upgraded some things (e.g. certificates and OpenSSL which seem like a good idea!)
+
+Looking at the `.tar.gz`, to replicate their install instructions, we want to:
+
+```
+mkdir -p csblast-2.2.3/bin
+mkdir -p csblast-2.2.3/data
+ln -s ${CONDA_PREFIX}/data/K4000.crf csblast-2.2.3/data
+ln -s ${CONDA_PREFIX}/data/K4000.lib csblast-2.2.3/data
+ln -s ${CONDA_PREFIX}/bin/csblast csblast-2.2.3/bin
+ln -s ${CONDA_PREFIX}/bin/csbuild csblast-2.2.3/bin
+```
+
+Inside the RoseTTAFold-All-Atom directory.
