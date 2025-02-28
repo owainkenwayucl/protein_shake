@@ -112,4 +112,12 @@ Converting distilled_model_signalp6.pt .
 
 --- Update 22:04 on Friday 28th of February in the year of our Lord Two Thousand and Twenty Five.
 
-I've got an interactive job running on a GPU node so re-running steps 5. onwards (not setting that CONDA_OVERRIDE_CUDA variable since we have a GPU in this box).
+I've got an interactive job running on a GPU node so re-running steps 5. onwards (not setting that `CONDA_OVERRIDE_CUDA` variable since we have a GPU in this box).
+
+Ok interesting, it's still doing:
+
+```
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/signalp/model_weights
+Converting to CPU.
+Converting distilled_model_signalp6.pt .
+```
