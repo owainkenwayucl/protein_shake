@@ -255,3 +255,45 @@ It's 23:11, time to take my dried frog pills and go to bed.
 --- Update 15:06 on Sunday 2nd of March in the year of our Lord Two Thousand and Twenty Five.
 
 I'm seriously struggling with disk space challenges - between 1TiB of ACFS and 1TiB of Scratch I do not have enough space to have the databases for both applications, on the basis that RoseTTAFold All-Atom is the most likely to work I've ditched the databases for AlphaFold3 for now while I try to unpack the RoseTTAFold All-Atom.
+
+BLAST Legacy - while the various files are decompressing, the final "code bit" that's needed is BLAST legacy. As with CS-BLAST this is actually in bioconda:
+
+```
+(RFAA) Myriad [login12] ~ :) > mamba search bioconda::blast-legacy
+Loading channels: done
+# Name                       Version           Build  Channel             
+blast-legacy                  2.2.19               0  bioconda            
+blast-legacy                  2.2.22               0  bioconda            
+blast-legacy                  2.2.22               1  bioconda            
+blast-legacy                  2.2.26               0  bioconda            
+blast-legacy                  2.2.26               1  bioconda            
+blast-legacy                  2.2.26               2  bioconda            
+blast-legacy                  2.2.26      h9ee0642_3  bioconda            
+blast-legacy                  2.2.26      h9ee0642_4  bioconda            
+blast-legacy                  2.2.26      hf7ff83a_5  bioconda         
+```
+
+So let's try and do the same trick.
+
+Interestingly, it looks like it's already installed. Go figure.
+
+Very unhelpfully, the URL given, `https://ftp.ncbi.nlm.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.26/blast-2.2.26-x64-linux.tar.gz` for the package is wrong.
+
+```
+(RFAA) Myriad [login12] temp :) > wget https://ftp.ncbi.nlm.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.26/blast-2.2.26-x64-linux.tar.gz
+--2025-03-02 15:19:32--  https://ftp.ncbi.nlm.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.26/blast-2.2.26-x64-linux.tar.gz
+Resolving ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)... failed: Name or service not known.
+wget: unable to resolve host address ‘ftp.ncbi.nlm.nih.gov’
+```
+
+We do however have this installed in Myriad anyway, so to save sanity and space:
+
+```
+ln -s /shared/ucl/apps/blast/blast-2.2.26 .
+```
+
+--- Update 18:36 on Sunday 2nd of March in the year of our Lord Two Thousand and Twenty Five.
+
+`bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt.tar.gz` is still unpacking and I'm about to run out of space. I clearly need more thant 1 TiB quota.
+
+Looking at the output of `tar -vtf`, one file is over 1.5 TiB.
