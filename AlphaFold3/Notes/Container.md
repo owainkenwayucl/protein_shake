@@ -81,3 +81,7 @@ done
 I copy them to Scratch first because `unzstd` decompresses files to the directory the `.zst` is in, seems to have no way of setting an output directory and of course the ACFS is read only on compute nodes. The `--rm` flag should delete the `.zst` files after decompressing them.
 
 Running dangerously close to my quota on basically all filesystems at this point.
+
+--- Update 15:06 on Sunday 2nd of March in the year of our Lord Two Thousand and Twenty Five.
+
+I'm seriously struggling with disk space challenges - between 1TiB of ACFS and 1TiB of Scratch I do not have enough space to have the databases for both applications, on the basis that RoseTTAFold All-Atom is the most likely to work I've ditched the databases for AlphaFold3 for now while I try to unpack the RoseTTAFold All-Atom.

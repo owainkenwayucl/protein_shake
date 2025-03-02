@@ -251,3 +251,7 @@ csblast-2.2.3/bin/csbuild
 Sweet!
 
 It's 23:11, time to take my dried frog pills and go to bed.
+
+--- Update 15:06 on Sunday 2nd of March in the year of our Lord Two Thousand and Twenty Five.
+
+I'm seriously struggling with disk space challenges - between 1TiB of ACFS and 1TiB of Scratch I do not have enough space to have the databases for both applications, on the basis that RoseTTAFold All-Atom is the most likely to work I've ditched the databases for AlphaFold3 for now while I try to unpack the RoseTTAFold All-Atom.
