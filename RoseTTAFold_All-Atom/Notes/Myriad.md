@@ -349,3 +349,5 @@ Tue Mar  4 10:40:29 2025
 Which bodes well.
 
 There are definitely some problems with centralising the install though. For example, the `protein.yaml` is relative to `rf2aa/config/inference/` which is quite annoying.
+
+Also, this is a multi-stage pipeline so let's see what happens.
