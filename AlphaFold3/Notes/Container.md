@@ -91,3 +91,39 @@ I'm seriously struggling with disk space challenges - between 1TiB of ACFS and 1
 Quota temporarily increased to 6TiB. Unpacking databases to scratch.
 
 I forget to get pdb_2022_09_28_mmcif_files.tar.zst so I'm getting/unpacking that too.
+
+*Edit*  - I didn't forget, I deleted it by doing `rm *.zstd` earlier because my script doesn't unpack it.
+
+```
+Myriad [node-e96a-001] AlphaFold3 :( > apptainer exec  --nv --no-home alphafold3-proteinshake.sif sh -c 'nvidia-smi'
+Tue Mar  4 11:48:22 2025
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           Off |   00000000:58:00.0 Off |                    0 |
+| N/A   36C    P0             37W /  250W |       1MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   1  Tesla V100-PCIE-32GB           Off |   00000000:D8:00.0 Off |                    0 |
+| N/A   34C    P0             36W /  250W |       1MiB /  32768MiB |      1%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+```
+
+I think our test command is:
+
+```
+apptainer exec  --nv --bind /home/uccaoke/Source/AlphaFold3/home/af_input:/root/af_input --bind /home/uccaoke/Source/AlphaFold3/home/af_output:/root/af_output --bind /home/uccaoke/ACFS/Datasets/AlphaFold3/Weights:/root/models --bind /home/uccaoke/Scratch/protein_shake/af3/root/public_databases --no-mount bind-paths --no-home alphafold3-proteinshake.sif python3 run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output
+```
