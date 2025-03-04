@@ -297,3 +297,55 @@ ln -s /shared/ucl/apps/blast/blast-2.2.26 .
 `bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt.tar.gz` is still unpacking and I'm about to run out of space. I clearly need more thant 1 TiB quota.
 
 Looking at the output of `tar -vtf`, one file is over 1.5 TiB.
+
+--- Update 10:37 on Tuesday 4th of March in the year of our Lord Two Thousand and Twenty Five.
+
+Heather increased my quota in Scratch temporarily to 6TiB and I unpacked the RoseTTAFold databases to it.
+
+I've reserved a GPU node on Myriad and tried running it and
+
+```
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > python3 -m rf2aa.run_inference --config-name protein.yaml
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'protein.yaml': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+Using the cif atom ordering for TRP.
+./make_msa.sh examples/protein/7u7w_A.fasta 7u7w_protein/A 4 64  pdb100_2021Mar03/pdb100_2021Mar03
+Predicting: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:03<00:00,  3.87s/sequences]
+Running HHblits against UniRef30 with E-value cutoff 1e-10
+
+```
+
+Looking at `nvidia-smi` something is happening:
+
+```
+
+Tue Mar  4 10:40:29 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           Off |   00000000:58:00.0 Off |                    0 |
+| N/A   36C    P0             37W /  250W |    1898MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   1  Tesla V100-PCIE-32GB           Off |   00000000:D8:00.0 Off |                    0 |
+| N/A   32C    P0             26W /  250W |       4MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    249383      C   python3                                      1894MiB |
++-----------------------------------------------------------------------------------------+
+
+```
+
+Which bodes well.
+
+There are definitely some problems with centralising the install though. For example, the `protein.yaml` is relative to `rf2aa/config/inference/` which is quite annoying.
