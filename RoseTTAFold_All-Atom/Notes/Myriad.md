@@ -351,3 +351,65 @@ Which bodes well.
 There are definitely some problems with centralising the install though. For example, the `protein.yaml` is relative to `rf2aa/config/inference/` which is quite annoying.
 
 Also, this is a multi-stage pipeline so let's see what happens.
+
+As things continue: 
+
+```
+Running HHblits against UniRef30 with E-value cutoff 1e-10
+- 10:50:06.264 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 10:50:06.264 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov75.a3m
+
+- 10:50:06.493 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 10:50:39.946 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 10:50:39.947 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov50.a3m
+
+- 10:50:40.172 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+Running PSIPRED
+Running hhsearch
+cat: 7u7w_protein/A/t000_.ss2: No such file or directory
+
+```
+
+Which looks not good, worse, the pipeline continues?
+
+Perhaps it's not necessary as it's pumped out a PDB and a Pytorch file as required:
+
+```
+7u7w_protein         7u7w_protein.pdb  blast-2.2.26   environment.yaml  img          input_prep               LICENSE      outputs           README.md  RFAA_paper_weights.pt
+7u7w_protein_aux.pt  bfd               csblast-2.2.3  examples          __init__.py  install_dependencies.sh  make_msa.sh  pdb100_2021Mar03  rf2aa      UniRef30_2020_06
+```
+
+Ah, see this issue: https://github.com/baker-laboratory/RoseTTAFold-All-Atom/issues/106
+
+The fix (`chmod +x input_prep/make_ss.sh`) in that issue doesn't make a lot of sense but let's see if it works.
+
+It did indeed work:
+
+```
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > python3 -m rf2aa.run_inference --config-name protein
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'protein': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+Using the cif atom ordering for TRP.
+./make_msa.sh examples/protein/7u7w_A.fasta 7u7w_protein/A 4 64  pdb100_2021Mar03/pdb100_2021Mar03
+Predicting: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.32sequences/s]
+Running HHblits against UniRef30 with E-value cutoff 1e-10
+- 11:24:25.339 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 11:24:25.339 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov75.a3m
+
+- 11:24:25.568 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 11:24:59.027 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 11:24:59.027 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov50.a3m
+
+- 11:24:59.258 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+Running PSIPRED
+Running hhsearch
+(RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > 
+```
