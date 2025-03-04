@@ -85,3 +85,9 @@ Running dangerously close to my quota on basically all filesystems at this point
 --- Update 15:06 on Sunday 2nd of March in the year of our Lord Two Thousand and Twenty Five.
 
 I'm seriously struggling with disk space challenges - between 1TiB of ACFS and 1TiB of Scratch I do not have enough space to have the databases for both applications, on the basis that RoseTTAFold All-Atom is the most likely to work I've ditched the databases for AlphaFold3 for now while I try to unpack the RoseTTAFold All-Atom.
+
+--- Update 11:40 on Tuesday 4th of March
+
+Quota temporarily increased to 6TiB. Unpacking databases to scratch.
+
+I forget to get pdb_2022_09_28_mmcif_files.tar.zst so I'm getting/unpacking that too.
