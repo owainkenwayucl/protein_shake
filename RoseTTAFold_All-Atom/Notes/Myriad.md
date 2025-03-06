@@ -413,3 +413,141 @@ Running PSIPRED
 Running hhsearch
 (RFAA) Myriad [node-e96a-001] RoseTTAFold-All-Atom :) > 
 ```
+
+
+--- Update 15:40 on Thursday 6th of March
+
+(note to James, I'm waiting for a long ansible deploy of the trino dependencies to happen)
+
+Over the last few days I've been copying stiff as `ccspapp` over so that the RosettaFold All-Atom databases are visible to all.
+
+The first thing I want to do is "un-mamba" my install which will make life easier doing a central install. Looking at the environment, the only meaningful variable `mamba activate` sets is `$PATH`.
+
+Doing a run to prove this is fine.
+
+```
+- 17:20:46.810 ERROR: In /opt/conda/conda-bld/hhsuite_1709621322429/work/src/hhalignment.cpp:223: Read:
+
+- 17:20:46.810 ERROR:   sequence ss_pred contains no residues.
+
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 206, in main
+    runner.infer()
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 153, in infer
+    self.parse_inference_config()
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 46, in parse_inference_config
+    protein_input = generate_msa_and_load_protein(
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 93, in generate_msa_and_load_protein
+    return load_protein(str(msa_file), str(hhr_file), str(atab_file), model_runner)
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 66, in load_protein
+    xyz_t, t1d, mask_t, _ = get_templates(
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 30, in get_templates
+    ) = parse_templates_raw(ffdb, hhr_fn=hhr_fn, atab_fn=atab_fn)
+  File "/lustre/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/parsers.py", line 628, in parse_templates_raw
+    for l in open(atab_fn, "r").readlines():
+FileNotFoundError: [Errno 2] No such file or directory: '7u7w_protein/A/t000_.atab'
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+
+```
+
+So not fine. No idea why this happening. It makes no sense and it's definitely due to the difference between mamba activating the RFAA environment and just setting the `$PATH`. Will retrun to to this later.
+
+On another track, I thought initially that this code expected its input files to be in a specific place but it actually uses something called "hydra" to set its environment.
+
+It looks like we can configure the input directory with `--config-path` so:
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 -m rf2aa.run_inference --config-path=$(pwd)/config/inference --config-name owain
+```
+
+The problem is it still wants a lot of things in the CWD...
+
+
+```
+lrwxrwxrwx 1 uccaoke uccapc3   44 Mar  6 17:53 bfd -> /home/uccaoke/Scratch/protein_shake/rfaa/bfd
+drwx------ 3 uccaoke uccapc3 4.0K Mar  6 17:48 config
+drwx------ 5 uccaoke uccapc3 4.0K Mar  6 17:55 examples
+lrwxrwxrwx 1 uccaoke uccapc3   53 Mar  6 17:57 make_msa.sh -> /home/uccaoke/Source/RoseTTAFold-All-Atom/make_msa.sh
+lrwxrwxrwx 1 uccaoke uccapc3   57 Mar  6 17:53 pdb100_2021Mar03 -> /home/uccaoke/Scratch/protein_shake/rfaa/pdb100_2021Mar03
+lrwxrwxrwx 1 uccaoke uccapc3   70 Mar  6 17:54 RFAA_paper_weights.pt -> /home/uccaoke/ACFS/Datasets/RoseTTaFold_All-Atom/RFAA_paper_weights.pt
+lrwxrwxrwx 1 uccaoke uccapc3   57 Mar  6 17:53 UniRef30_2020_06 -> /home/uccaoke/Scratch/protein_shake/rfaa/UniRef30_2020_06
+```
+
+I'm not sure if this is the "minimum" either as the test job us running.
+
+That recreates good old:
+
+```
+cat: 7u7w_protein/A/t000_.ss2: No such file or directory
+```
+
+So presumably we need to link in that as well.
+
+```
+ln -s ~/Source/RoseTTAFold-All-Atom/input_prep .
+```
+
+Assuming this is the state of the world and I can't work out out to de-Mamba the Mamba environment I think the central install process would look like:
+
+1. Environment module adds a directory to the `$PATH` which contains two scripts.
+2. Script 1 -> "blesses" a directory with all the necessary sym-links.
+3. Script 2 -> is a "sourceme" which sources the two `.sh` files to enable Mamba, and activates the `RFAA` environemnt, and sets the `$PYTHONPATH` to the central install.
+
+So when setting up a new run, users would load the module, "bless" the directory they want to put the files in, put their config + input files in, and then source the sourceme script.  They should then run RFAA as normal.
+
+If we can de-Mamba the environment sucessfully, all of 3. can be done replaced by the module.
+
+If we can control where RFAA looks for things (hydra???) then we can lose 2.
+
+Well that test run failed with the same error as we see above.
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 -m rf2aa.run_inference --config-path=$(pwd)/config/inference --config-name owain
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'owain': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+Using the cif atom ordering for TRP.
+./make_msa.sh examples/protein/7u7w_A.fasta 7u7w_protein/A 4 64  pdb100_2021Mar03/pdb100_2021Mar03
+Predicting: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.32sequences/s]
+Running HHblits against UniRef30 with E-value cutoff 1e-10
+- 18:13:49.653 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 18:13:49.653 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov75.a3m
+
+- 18:13:49.897 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 18:14:24.089 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 18:14:24.089 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov50.a3m
+
+- 18:14:24.323 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+Running PSIPRED
+Running hhsearch
+- 18:16:38.763 ERROR: In /opt/conda/conda-bld/hhsuite_1709621322429/work/src/hhalignment.cpp:223: Read:
+
+- 18:16:38.763 ERROR:   sequence ss_pred contains no residues.
+
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 206, in main
+    runner.infer()
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 153, in infer
+    self.parse_inference_config()
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/run_inference.py", line 46, in parse_inference_config
+    protein_input = generate_msa_and_load_protein(
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 93, in generate_msa_and_load_protein
+    return load_protein(str(msa_file), str(hhr_file), str(atab_file), model_runner)
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 66, in load_protein
+    xyz_t, t1d, mask_t, _ = get_templates(
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/protein.py", line 30, in get_templates
+    ) = parse_templates_raw(ffdb, hhr_fn=hhr_fn, atab_fn=atab_fn)
+  File "/home/uccaoke/Source/RoseTTAFold-All-Atom/rf2aa/data/parsers.py", line 628, in parse_templates_raw
+    for l in open(atab_fn, "r").readlines():
+FileNotFoundError: [Errno 2] No such file or directory: '7u7w_protein/A/t000_.atab'
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+```
+
+That's bad because it means that we can't use the approach I suggested, but good because it's the *same* as the un-Mambaing error which implies that the fix for one is the fix for both.
