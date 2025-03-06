@@ -208,3 +208,24 @@ Fold job 2PV7 done, output written to /root/af_output/2pv7
 Done running 1 fold jobs.
 
 ```
+
+--- Update 15:40 on Thursday 6th of March
+
+(note to James, I'm waiting for a long ansible deploy of the trino dependencies to happen)
+
+Over the last few days I've been copying stiff as `ccspapp` over so that the AlphaFold 3 databases (not weights!) and singularity containers are visible to all.
+
+So now our command should be:
+
+```
+apptainer exec  --nv --bind /home/uccaoke/Source/AlphaFold3/home/af_input:/root/af_input --bind /home/uccaoke/Source/AlphaFold3/home/af_output:/root/af_output --bind /home/uccaoke/ACFS/Datasets/AlphaFold3/Weights:/root/models --bind /shared/ucl/apps/AlphaFold3_db:/root/public_databases --no-home --no-mount bind-paths  /shared/ucl/apps/AlphaFold3/alphafold3.sif sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+```
+This fails because the `.cif` files have group read but not world read.
+
+Since there are almost 200,000 of them this will take "some time" (tm)
+
+Perms reset
+
+And that seems to have fixed it.
+
+I consider this bit done. https://www.rc.ucl.ac.uk/docs/Software_Guides/AlphaFold3/
