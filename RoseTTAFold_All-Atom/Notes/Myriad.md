@@ -551,3 +551,20 @@ Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
 ```
 
 That's bad because it means that we can't use the approach I suggested, but good because it's the *same* as the un-Mambaing error which implies that the fix for one is the fix for both.
+
+--- Update 13:36 on Friday 7th of March.
+
+I found this issue will poking about the RoseTTAfold-AA repo (https://github.com/baker-laboratory/RoseTTAFold-All-Atom/issues/105) and so I decided to fix this.
+
+I've just done a successful run with:
+
+* sourced conda + mamba settings
+* set PATH to include the RFAA conda, the root of the RoseTTAFold-AA, and the input_prep sub-dir
+* The `./` removed from that line.
+* `export CONDA_PREFIX=/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA`
+
+This is really good progress!
+
+I'm removing sym-links one at a time to see what we can get away with, but while it was bleak before I have more hope.
+
+I'm now trying with the `PYTHONPATH` set to include the rfaa folder.
