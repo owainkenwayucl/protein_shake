@@ -568,3 +568,7 @@ This is really good progress!
 I'm removing sym-links one at a time to see what we can get away with, but while it was bleak before I have more hope.
 
 I'm now trying with the `PYTHONPATH` set to include the rfaa folder.
+
+--- Update 15:52
+
+It worked!
