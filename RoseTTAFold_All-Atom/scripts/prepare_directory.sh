@@ -23,4 +23,5 @@ ln -sf ${weightsdir}/RFAA_paper_weights.pt ${target}/RFAA_paper_weights.pt
 echo ""
 echo "Done."
 echo ""
-echo "Assuming you have the environment module correctly loaded, you can now run RFAA from inside this directory.\n"
+echo "Assuming you have the environment module correctly loaded, you can now run RFAA from inside this directory."
+echo ""
