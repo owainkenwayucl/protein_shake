@@ -572,3 +572,87 @@ I'm now trying with the `PYTHONPATH` set to include the rfaa folder.
 --- Update 15:52
 
 It worked!
+
+--- Update 20:50 on Wednesday the 12th of March in the year of our Lord Two Thousand and Twenty Three
+
+Due to the release of WWE 2K25 at the weekend followed by it being my birthday, I've not been working on this recently so time get back to it.
+
+Tonight I hope to run without the Conda/Mamba set up, just with manually set environment variables, and maybe progress to writing a prototype environment module. With that done I can then later this week write an install script to run as `ccspapp` to try a central install.
+
+I note that the post prediction step can take a very long time which is concerning and I should investigate.
+
+```
+export PATH=/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/bin:$PATH
+export PATH=/home/uccaoke/Source/RoseTTAFold-All-Atom:/home/uccaoke/Source/RoseTTAFold-All-Atom/input_prep:$PATH
+export PYTHONPATH=/home/uccaoke/Source/RoseTTAFold-All-Atom:
+export CONDA_PREFIX=/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA
+python3 -m rf2aa.run_inference --config-path=$(pwd)/config/inference --config-name owain
+```
+
+This would appear to be working.
+
+I'm running a second copy in a directory "blessed" by the initial version of the `prepare_direcory.sh` script in this repo and with the `owain.yanl` and `base.yaml` from which it inherits in the same directory.
+
+```
+python3 -m rf2aa.run_inference --config-path=$(pwd) --config-name owain
+```
+
+Both runs worked fine.
+
+Now with the test module:
+
+```
+Myriad [node-e96a-001] uccaoke :) > module load rfaa-testing
+
+Please note that the license of Signalp 6.0h which is used
+in RFAA ONLY allows its use for non-commercial work.
+This means you may only use RFAA for non-commercial work.
+
+Myriad [node-e96a-001] uccaoke :) > cd ~/Scratch/protein_shake/
+Myriad [node-e96a-001] protein_shake :) > mkdir rfaa_module_test
+Myriad [node-e96a-001] protein_shake :) > prepare_directory.sh rfaa_module_test
+Preparing rfaa_module_test as an RFAA input directory.
+
+Linking databases to rfaa_module_test directory...
+/shared/ucl/apps/RoseTTAFold-All-Atom_db/bfd <- rfaa_module_test/bfd
+/shared/ucl/apps/RoseTTAFold-All-Atom_db/pdb100_2021Mar03 <- rfaa_module_test/pdb100_2021Mar03
+/shared/ucl/apps/RoseTTAFold-All-Atom_db/UniRef30_2020_06 <- rfaa_module_test/UniRef30_2020_06
+
+Linking weights to rfaa_module_test directory...
+/shared/ucl/apps/RoseTTAFold-All-Atom_db/RFAA_paper_weights.pt <- rfaa_module_test/RFAA_paper_weights.pt
+
+Done.
+
+Assuming you have the environment module correctly loaded, you can now run RFAA from inside this directory.
+
+Myriad [node-e96a-001] protein_shake :) > cd rfaa_module_test/
+Myriad [node-e96a-001] rfaa_module_test :) > cp ../rfaa_test2/*.yaml .
+Myriad [node-e96a-001] rfaa_module_test :) > python3 -m rf2aa.run_inference --config-path=$(pwd) --config-name owain
+/lustre/scratch/scratch/uccaoke/miniforge3/envs/RFAA/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'owain': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+Using the cif atom ordering for TRP.
+make_msa.sh /home/uccaoke/Source/RoseTTAFold-All-Atom/examples/protein/7u7w_A.fasta 7u7w_protein/A 4 64  pdb100_2021Mar03/pdb100_2021Mar03
+Predicting: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.33sequences/s]
+Running HHblits against UniRef30 with E-value cutoff 1e-10
+- 21:49:08.753 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 21:49:08.753 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov75.a3m
+
+- 21:49:08.979 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 21:49:42.417 INFO: Input file = 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+- 21:49:42.417 INFO: Output file = 7u7w_protein/A/hhblits/t000_.1e-10.id90cov50.a3m
+
+- 21:49:42.641 WARNING: Maximum number 100000 of sequences exceeded in file 7u7w_protein/A/hhblits/t000_.1e-10.a3m
+
+Running PSIPRED
+Running hhsearch
+Myriad [node-e96a-001] rfaa_module_test :) > 
+```
+
+So, success!
+
+I've made a patch (in the `patches/` folder) for the `preprocessing.py` bug.
+
+It's now 22:05 so I'm done for the day!
