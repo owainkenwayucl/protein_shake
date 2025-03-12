@@ -16,7 +16,7 @@ echo "${datadir}/pdb100_2021Mar03 <- ${target}/pdb100_2021Mar03"
 ln -sf ${datadir}/pdb100_2021Mar03 ${target}/pdb100_2021Mar03
 echo "${datadir}/UniRef30_2020_06 <- ${target}/UniRef30_2020_06"
 ln -sf ${datadir}/UniRef30_2020_06 ${target}/UniRef30_2020_06
-echo ::
+echo ""
 echo "Linking weights to ${target} directory..."
 echo "${weightsdir}/RFAA_paper_weights.pt <- ${target}/RFAA_paper_weights.pt"
 ln -sf ${weightsdir}/RFAA_paper_weights.pt ${target}/RFAA_paper_weights.pt
