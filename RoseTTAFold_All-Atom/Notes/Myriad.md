@@ -656,3 +656,9 @@ So, success!
 I've made a patch (in the `patches/` folder) for the `preprocessing.py` bug.
 
 It's now 22:05 so I'm done for the day!
+
+--- Update 17:29, 13th March 2025.
+
+RFAA is centrally installed: https://www.rc.ucl.ac.uk/docs/Software_Guides/RFAA/
+
+This work is now done.
