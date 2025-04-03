@@ -49,9 +49,11 @@ Sweet.
 
 Tested with the `rocm/jax-community:latest` which is JAX 0.5.0 rather than 0.4.31 and it also works (and is quicker!).
 
-## 2. Prepare the requirements.tx
+## 2. Prepare the requirements.txt
 
 I removed every line with `nvidia` or `hash=sha256` in it, as well as setting the JAX version to 0.5.0 as it is in the community container. `pip install`ing this worked as far at least as the `pip install` step.
+
+There are requirements files in the `Pip` folder for the three possible versions of JAX.
 
 ## 3. Work out which base continer to use.
 
@@ -60,3 +62,71 @@ Although 0.5.0 is faster than 0.4.34 (which is the one installed in the nvidia c
 There is a `rocm/jax-community:rocm6.2.4-jax0.4.35-py3.11.10` which would be at most a minor change over the version used in the nvidia container, and `rocm/jax-community:rocm6.2.3-jax0.4.34-py3.11.10` which is exactly the same version but a fractionally older ROCm. Choices!
 
 I am pulling both images.
+
+I think I will go with 0.4.34 image as the software I think is most flimsy in this equation is AlphaFold3 and or `chex` which I know from other contexts has ... breaking changes with minor changes in JAX.
+
+## 4. Building the container.
+
+For reasons, `podman` uses the directory the `Dockerfile` is in as `.` so we need to put our `Dockerfile` in the `alphafold3` folder rather than overwrite the one in `docker/`
+
+Then do:
+
+```
+podman build -t alphafold3:proteinshake -f Dockerfile
+```
+
+This fails with:
+
+```
+      [184/235] Building CXX object _deps/cifpp-build/test/CMakeFiles/test-main.dir/test-main.cpp.o
+      FAILED: _deps/cifpp-build/test/CMakeFiles/test-main.dir/test-main.cpp.o
+      /usr/bin/g++  -pthread -DCACHE_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/var/cache/libcifpp\" -DCATCH22=1 -DDATA_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/share/libcifpp\" -I/tmp/tmpzydwn6cp/build/_deps/cifpp-s
+rc/include -I/tmp/tmpzydwn6cp/build/_deps/catch2-src/single_include -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG -std=gnu++2a -fPIC -MD -MT _deps/cifpp-build/test/CMakeFi
+les/test-main.dir/test-main.cpp.o -MF _deps/cifpp-build/test/CMakeFiles/test-main.dir/test-main.cpp.o.d -o _deps/cifpp-build/test/CMakeFiles/test-main.dir/test-main.cpp.o -c /tmp/tmpzydwn6cp/build/_deps/cif
+pp-src/test/test-main.cpp
+      In file included from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/test/test-main.cpp:5:
+      /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/utilities.hpp:193:2: error: ‘requires’ does not name a type
+        193 |  requires std::is_assignable_v<std::string_view, T>
+            |  ^~~~~~~~
+      [185/235] Building CXX object CMakeFiles/cpp.dir/src/alphafold3/structure/cpp/string_array_pybind.cc.o
+      [186/235] Building CXX object _deps/cifpp-build/test/CMakeFiles/unit-3d-test.dir/unit-3d-test.cpp.o
+      FAILED: _deps/cifpp-build/test/CMakeFiles/unit-3d-test.dir/unit-3d-test.cpp.o
+      /usr/bin/g++  -pthread -DCACHE_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/var/cache/libcifpp\" -DCATCH22=1 -DDATA_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/share/libcifpp\" -I/tmp/tmpzydwn6cp/build/_deps/my-eigen3-src -I/tmp/tmpzydwn6cp/build/_deps/cifpp-src/include -I/tmp/tmpzydwn6cp/build/_deps/catch2-src/single_include -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG -std=gnu++2a -fPIE -MD -MT _deps/cifpp-build/test/CMakeFiles/unit-3d-test.dir/unit-3d-test.cpp.o -MF _deps/cifpp-build/test/CMakeFiles/unit-3d-test.dir/unit-3d-test.cpp.o.d -o _deps/cifpp-build/test/CMakeFiles/unit-3d-test.dir/unit-3d-test.cpp.o -c /tmp/tmpzydwn6cp/build/_deps/cifpp-src/test/unit-3d-test.cpp
+      In file included from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/test/unit-3d-test.cpp:31:
+      /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/utilities.hpp:193:2: error: ‘requires’ does not name a type
+        193 |  requires std::is_assignable_v<std::string_view, T>
+            |  ^~~~~~~~
+      [187/235] Building CXX object CMakeFiles/cpp.dir/src/alphafold3/parsers/cpp/cif_dict_pybind.cc.o
+      [188/235] Building CXX object _deps/cifpp-build/CMakeFiles/cifpp.dir/src/symmetry.cpp.o
+      FAILED: _deps/cifpp-build/CMakeFiles/cifpp.dir/src/symmetry.cpp.o
+      /usr/bin/g++  -pthread -DBOOST_REGEX_STANDALONE=1 -DCACHE_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/var/cache/libcifpp\" -DDATA_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/share/libcifpp\" -DUSE_BOOST_REGEX=1 -I/tmp/tmpzydwn6cp/build/_deps/cifpp-src/include -I/tmp/tmpzydwn6cp/build/_deps/boost-rx-src/include -I/tmp/tmpzydwn6cp/build/_deps/my-eigen3-src -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG -std=gnu++2a -fPIC -MD -MT _deps/cifpp-build/CMakeFiles/cifpp.dir/src/symmetry.cpp.o -MF _deps/cifpp-build/CMakeFiles/cifpp.dir/src/symmetry.cpp.o.d -o _deps/cifpp-build/CMakeFiles/cifpp.dir/src/symmetry.cpp.o -c /tmp/tmpzydwn6cp/build/_deps/cifpp-src/src/symmetry.cpp
+      In file included from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/item.hpp:32,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/row.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/condition.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/category.hpp:31,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/datablock.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/src/symmetry.cpp:28:
+      /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/utilities.hpp:193:2: error: ‘requires’ does not name a type
+        193 |  requires std::is_assignable_v<std::string_view, T>
+            |  ^~~~~~~~
+      [189/235] Building CXX object _deps/cifpp-build/CMa      FAILED: _deps/cifpp-build/CMakeFiles/cifpp.dir/src/pdb/cif2pdb.cpp.o
+      /usr/bin/g++  -pthread -DBOOST_REGEX_STANDALONE=1 -DCACHE_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/var/cache/libcifpp\" -DDATA_DIR=\"/tmp/tmpzydwn6cp/wheel/platlib/share/libcifpp\" -DUSE_BOOST_REGEX=1 -I/tmp/tmpzydwn6cp/build/_deps/cifpp-src/include -I/tmp/tmpzydwn6cp/build/_deps/boost-rx-src/include -I/tmp/tmpzydwn6cp/build/_deps/my-eigen3-src -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG -std=gnu++2a -fPIC -MD -MT _deps/cifpp-build/CMakeFiles/cifpp.dir/src/pdb/cif2pdb.cpp.o -MF _deps/cifpp-build/CMakeFiles/cifpp.dir/src/pdb/cif2pdb.cpp.o.d -o _deps/cifpp-build/CMakeFiles/cifpp.dir/src/pdb/cif2pdb.cpp.o -c /tmp/tmpzydwn6cp/build/_deps/cifpp-src/src/pdb/cif2pdb.cpp
+      In file included from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++.hpp:29,
+                       from /tmp/tmpzydwn6cp/build/_deps/cifpp-src/src/pdb/cif2pdb.cpp:27:
+      /tmp/tmpzydwn6cp/build/_deps/cifpp-src/include/cif++/utilities.hpp:193:2: error: ‘requires’ does not name a type
+        193 |  requires std::is_assignable_v<std::string_view, T>
+            |  ^~~~~~~~
+      ninja: build stopped: subcommand failed.
+
+      *** CMake build failed
+      [end of output]
+
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+  ERROR: Failed building wheel for alphafold3
+ERROR: Failed to build installable wheels for some pyproject.toml based projects (alphafold3)
+Error: building at STEP "RUN pip3 install --no-deps .": while running runtime: exit status 1
+```
+
+Which is obviously a problem.
