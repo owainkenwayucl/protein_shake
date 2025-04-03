@@ -155,3 +155,63 @@ docker.io/rocm/jax-community   rocm6.2.3-jax0.4.34-py3.11.10  b229479e4af8  5 mo
 ## 5. Test
 
 I'm downloading the massive databases to ATLAS. Wish me luck.
+
+```
+podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+```
+
+Sad beep:
+
+```
+Traceback (most recent call last):
+  File "/alphafold3_venv/lib/python3.11/site-packages/jax_triton/__init__.py", line 37, in <module>
+    get_compute_capability = gpu_triton.get_compute_capability
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'jaxlib.gpu_triton' has no attribute 'get_compute_capability'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 45, in <module>
+    from alphafold3.jax.attention import attention
+  File "/alphafold3_venv/lib/python3.11/site-packages/alphafold3/jax/attention/attention.py", line 17, in <module>
+    from alphafold3.jax.attention import flash_attention as attention_triton
+  File "/alphafold3_venv/lib/python3.11/site-packages/alphafold3/jax/attention/flash_attention.py", line 22, in <module>
+    import jax_triton as jt
+  File "/alphafold3_venv/lib/python3.11/site-packages/jax_triton/__init__.py", line 40, in <module>
+    raise ImportError(
+ImportError: jax-triton requires JAX to be installed with GPU support. The installation page on the JAX documentation website includes instructions for installing a supported version:
+https://jax.readthedocs.io/en/latest/installation.html
+```
+
+Well that sucks. It looks like installing on the base of the community jax means the test in `jaxlib.gpu_triton` is failing. On the older JAC, 0.4.31 in the "non-community release", we can do: 
+
+```
+root@e549fdfdc21a:/# python3
+Python 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+<module 'jax_rocm60_plugin._triton' from '/opt/venv/lib/python3.10/site-packages/jax_rocm60_plugin/_triton.so'>
+>>> 
+```
+
+On the community containers, it does e.g:
+
+```
+Python 3.10.16 (main, Feb 17 2025, 01:40:07) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+>>> 
+```
+
+We can see it's failing this test:
+
+https://github.com/jax-ml/jax/blob/bd9220838f4758bda14150a99d80293dc4dc0be4/jaxlib/gpu_triton.py#L20
+
+```python
+_hip_triton = import_from_plugin("rocm", "_triton")
+```
+
+Oh well https://github.com/ROCm/jax/issues/339
