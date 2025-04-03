@@ -130,3 +130,5 @@ Error: building at STEP "RUN pip3 install --no-deps .": while running runtime: e
 ```
 
 Which is obviously a problem.
+
+It looks like this is this - so we need a newer GCC? https://github.com/google-deepmind/alphafold3/issues/223
