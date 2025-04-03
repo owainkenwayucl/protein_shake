@@ -19,7 +19,7 @@ FROM docker.io/rocm/jax-community:rocm6.2.3-jax0.4.34-py3.11.10
 RUN apt-get update --quiet \
     && apt-get dist-upgrade --yes --quiet \
     && apt-get install --yes --quiet software-properties-common \
-    && apt-get install --yes --quiet git wget gcc g++ make zlib1g-dev zstd hmmer
+    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd hmmer
 
 RUN python3.11 -m venv /alphafold3_venv
 ENV PATH="/alphafold3_venv/bin:$PATH"
@@ -41,7 +41,7 @@ WORKDIR /app/alphafold
 
 # Install the Python dependencies AlphaFold 3 needs.
 RUN pip3 install -r dev-requirements-jax-0.4.34.txt
-RUN pip3 install --no-deps .
+RUN CC=gcc-10 CXX=g++-10 pip3 install --no-deps .
 # Build chemical components database (this binary was installed by pip).
 RUN build_data
 
