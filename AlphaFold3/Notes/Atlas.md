@@ -215,3 +215,98 @@ _hip_triton = import_from_plugin("rocm", "_triton")
 ```
 
 Oh well https://github.com/ROCm/jax/issues/339
+
+I've built a container with a horrible kludge in it to use jac 0.4.31.
+
+```
+podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-old sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+I0403 15:25:16.346253 140180234358912 xla_bridge.py:897] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 829, in <module>
+    app.run(main)
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 308, in run
+    _run_main(main, args)
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 254, in _run_main
+    sys.exit(main(argv))
+             ^^^^^^^^^^
+  File "/app/alphafold/run_alphafold.py", line 717, in main
+    compute_capability = float(
+                         ^^^^^^
+ValueError: could not convert string to float: 'gfx942'
+[uccaoke@ip-10-134-25-2 alphafold3]$ 
+```
+
+We know what this is, this is the check for Volta cards which need to be treated special. So we should be able to modify `run_alphafold.py` to fix it.
+
+```
+[uccaoke@ip-10-134-25-2 alphafold3]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:
+Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-old sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-k
+ernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attent
+ion_implementation=xla"
+I0403 15:32:51.938552 140574038458496 xla_bridge.py:897] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+
+Running AlphaFold 3. Please note that standard AlphaFold 3 model parameters are
+only available under terms of use provided at
+https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md.
+If you do not agree to these terms and are using AlphaFold 3 derived model
+parameters, cancel execution of AlphaFold 3 inference with CTRL-C, and do not
+use the model parameters.
+
+Found local devices: [RocmDevice(id=0), RocmDevice(id=1), RocmDevice(id=2), RocmDevice(id=3), RocmDevice(id=4), RocmDevice(id=5), RocmDevice(id=6), RocmDevice(id=7)], using device 0: rocm:0
+Building model from scratch...
+Checking that model parameters can be loaded...
+
+Running fold job 2PV7...
+Output will be written in /root/af_output/2pv7
+Running data pipeline...
+Running data pipeline for chain A... 
+I0403 15:33:05.314379 140574038458496 pipeline.py:82] Getting protein MSAs for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVL
+GLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:33:05.318038 140189536085696 jackhmmer.py:78] Query sequence: GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQV
+VVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:33:05.318757 140189527692992 jackhmmer.py:78] Query sequence: GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQV
+VVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:33:05.319428 140189519300288 jackhmmer.py:78] Query sequence: GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:33:05.319853 140189536085696 subprocess_utils.py:68] Launching subprocess "/usr/bin/jackhmmer -o /dev/null -A /tmp/tmpegeja4hy/output.sto --noali --F1 0.0005 --F2 5e-05 --F3 5e-07 --cpu 8 -N 1 -E 0.0001 --incE 0.0001 /tmp/tmpegeja4hy/query.fasta /root/public_databases/uniref90_2022_05.fa"
+I0403 15:33:05.319942 140189510907584 jackhmmer.py:78] Query sequence: GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:33:05.320207 140189527692992 subprocess_utils.py:68] Launching subprocess "/usr/bin/jackhmmer -o /dev/null -A /tmp/tmpi3y6x7q0/output.sto --noali --F1 0.0005 --F2 5e-05 --F3 5e-07 --cpu 8 -N 1 -E 0.0001 --incE 0.0001 /tmp/tmpi3y6x7q0/query.fasta /root/public_databases/mgy_clusters_2022_05.fa"
+I0403 15:33:05.320554 140189519300288 subprocess_utils.py:68] Launching subprocess "/usr/bin/jackhmmer -o /dev/null -A /tmp/tmpm81q7p8q/output.sto --noali --F1 0.0005 --F2 5e-05 --F3 5e-07 --cpu 8 -N 1 -E 0.0001 --incE 0.0001 /tmp/tmpm81q7p8q/query.fasta /root/public_databases/bfd-first_non_consensus_sequences.fasta"
+I0403 15:33:05.321136 140189510907584 subprocess_utils.py:68] Launching subprocess "/usr/bin/jackhmmer -o /dev/null -A /tmp/tmpw6k_a9p1/output.sto --noali --F1 0.0005 --F2 5e-05 --F3 5e-07 --cpu 8 -N 1 -E 0.0001 --incE 0.0001 /tmp/tmpw6k_a9p1/query.fasta /root/public_databases/uniprot_all_2021_04.fa"
+I0403 15:34:09.994639 140189519300288 subprocess_utils.py:97] Finished Jackhmmer (bfd-first_non_consensus_sequences.fasta) in 64.674 seconds
+I0403 15:37:38.072148 140189536085696 subprocess_utils.py:97] Finished Jackhmmer (uniref90_2022_05.fa) in 272.752 seconds
+I0403 15:39:42.036951 140189510907584 subprocess_utils.py:97] Finished Jackhmmer (uniprot_all_2021_04.fa) in 396.716 seconds
+I0403 15:41:53.874885 140189527692992 subprocess_utils.py:97] Finished Jackhmmer (mgy_clusters_2022_05.fa) in 528.554 seconds
+I0403 15:41:53.952558 140574038458496 pipeline.py:115] Getting protein MSAs took 528.64 seconds for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:41:53.952702 140574038458496 pipeline.py:121] Deduplicating MSAs for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:41:53.976438 140574038458496 pipeline.py:134] Deduplicating MSAs took 0.02 seconds for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG, found 8506 unpaired sequences, 7080 paired sequences
+I0403 15:41:53.979389 140574038458496 pipeline.py:40] Getting protein templates for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+I0403 15:41:54.053283 140574038458496 subprocess_utils.py:68] Launching subprocess "/usr/bin/hmmbuild --informat stockholm --hand --amino /tmp/tmpfuhvudia/output.hmm /tmp/tmpfuhvudia/query.msa"
+I0403 15:41:54.385916 140574038458496 subprocess_utils.py:97] Finished Hmmbuild in 0.332 seconds
+I0403 15:41:54.388776 140574038458496 subprocess_utils.py:68] Launching subprocess "/usr/bin/hmmsearch --noali --cpu 8 --F1 0.1 --F2 0.1 --F3 0.1 -E 100 --incE 100 --domE 100 --incdomE 100 -A /tmp/tmpr9p4kc34/output.sto /tmp/tmpr9p4kc34/query.hmm /root/public_databases/pdb_seqres_2022_09_28.fasta"
+I0403 15:42:00.482367 140574038458496 subprocess_utils.py:97] Finished Hmmsearch (pdb_seqres_2022_09_28.fasta) in 6.094 seconds
+I0403 15:42:00.770663 140574038458496 pipeline.py:52] Getting 4 protein templates took 6.79 seconds for sequence GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG
+Running data pipeline for chain A took 535.51 seconds
+Running data pipeline for chain B... 
+Running data pipeline for chain B took 0.05 seconds
+Writing model input JSON to /root/af_output/2pv7/2pv7_data.json
+Predicting 3D structure for 2PV7 with 1 seed(s)...
+Featurising data with 1 seed(s)...   
+Featurising data with seed 1.
+I0403 15:42:05.221202 140574038458496 pipeline.py:166] processing 2PV7, random_seed=1
+I0403 15:42:05.252050 140574038458496 pipeline.py:259] Calculating bucket size for input with 596 tokens.
+I0403 15:42:05.252220 140574038458496 pipeline.py:265] Got bucket size 768 for input with 596 tokens, resulting in 172 padded tokens.
+Featurising data with seed 1 took 7.07 seconds.
+Featurising data with 1 seed(s) took 11.39 seconds.
+Running model inference and extracting output structure samples with 1 seed(s)...
+Running model inference with seed 1...
+Running model inference with seed 1 took 129.31 seconds.
+Extracting inference results with seed 1...
+Extracting 5 inference samples with seed 1 took 0.45 seconds.
+Running model inference and extracting output structures with 1 seed(s) took 129.76 seconds.
+Writing outputs with 1 seed(s)...
+Fold job 2PV7 done, output written to /root/af_output/2pv7
+
+Done running 1 fold jobs.
+```
+
+There is a patch for `run_alphafold.py` in `Patches` - it needs to be applied before you build the container.
