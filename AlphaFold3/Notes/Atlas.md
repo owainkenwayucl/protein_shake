@@ -72,7 +72,7 @@ For reasons, `podman` uses the directory the `Dockerfile` is in as `.` so we nee
 Then do:
 
 ```
-podman build -t alphafold3:proteinshake -f Dockerfile
+podman build -t alphafold3:proteinshake -f Dockerfile.rocm
 ```
 
 This fails with:
@@ -132,3 +132,26 @@ Error: building at STEP "RUN pip3 install --no-deps .": while running runtime: e
 Which is obviously a problem.
 
 It looks like this is this - so we need a newer GCC? https://github.com/google-deepmind/alphafold3/issues/223
+
+If this is indeed caused by too old a version of GCC (9.4) then the newest we can install from `apt` on Ubuntu 22.04 which is the base of the JAX container is GCC 10.
+
+So trying that.
+
+Adding `gcc-10` and `g++-10` and setting `CC` and `CXX` appropriately seems to allow this to build.
+
+Nice, look how *massive* these images are!
+
+```
+[uccaoke@ip-10-134-25-2 alphafold3]$ podman image ls
+REPOSITORY                     TAG                            IMAGE ID      CREATED         SIZE
+localhost/alphafold3           proteinshake                   889555914640  57 seconds ago  35 GB
+docker.io/rocm/jax             latest                         d949265c6ac2  3 weeks ago     33.5 GB
+docker.io/rocm/jax-community   latest                         193ba487b999  6 weeks ago     31.9 GB
+docker.io/library/hello-world  latest                         74cc54e27dc4  2 months ago    27.1 kB
+docker.io/rocm/jax-community   rocm6.2.4-jax0.4.35-py3.11.10  ef50d5181ba5  3 months ago    30.5 GB
+docker.io/rocm/jax-community   rocm6.2.3-jax0.4.34-py3.11.10  b229479e4af8  5 months ago    30.4 GB
+```
+
+## 5. Test
+
+I'm downloading the massive databases to ATLAS. Wish me luck.
