@@ -8,7 +8,7 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-FROM docker.io/rocm/jax:rocm6.3.4-jax0.4.31-py3.12
+FROM docker.io/rocm/jax:rocm6.3.2-jax0.4.31-py3.12
 
 # Some RUN statements are combined together to make Docker build run faster.
 # Get latest package listing, install software-properties-common, git, wget,
