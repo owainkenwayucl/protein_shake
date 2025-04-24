@@ -316,3 +316,104 @@ There is a patch for `run_alphafold.py` in `Patches` - it needs to be applied be
 https://github.com/ROCm/jax/issues/339#issuecomment-2825420288
 
 Let's see if we can get the newer JAX to play ball.
+
+On the "ubuntu" dev image:
+
+```
+root@9f852385265d:/# pip install jax==0.4.38 jaxlib==0.4.38 jax_rocm60_plugin==0.4.35 jax_rocm60_pjrt==0.4.35
+Collecting jax==0.4.38
+  Downloading jax-0.4.38-py3-none-any.whl (2.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 38.7 MB/s eta 0:00:00
+Collecting jaxlib==0.4.38
+  Downloading jaxlib-0.4.38-cp310-cp310-manylinux2014_x86_64.whl (101.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.7/101.7 MB 62.9 MB/s eta 0:00:00
+Collecting jax_rocm60_plugin==0.4.35
+  Downloading jax_rocm60_plugin-0.4.35-cp310-cp310-manylinux_2_28_x86_64.whl (6.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.7/6.7 MB 9.7 MB/s eta 0:00:00
+Collecting jax_rocm60_pjrt==0.4.35
+  Downloading jax_rocm60_pjrt-0.4.35-py3-none-manylinux_2_28_x86_64.whl (104.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 104.0/104.0 MB 7.7 MB/s eta 0:00:00
+Collecting ml_dtypes>=0.4.0
+  Downloading ml_dtypes-0.5.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 165.9 MB/s eta 0:00:00
+Collecting opt_einsum
+  Downloading opt_einsum-3.4.0-py3-none-any.whl (71 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.9/71.9 KB 60.2 MB/s eta 0:00:00
+Collecting numpy>=1.24
+  Downloading numpy-2.2.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.4/16.4 MB 175.6 MB/s eta 0:00:00
+Collecting scipy>=1.10
+  Downloading scipy-1.15.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (37.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.6/37.6 MB 91.6 MB/s eta 0:00:00
+Installing collected packages: jax_rocm60_pjrt, opt_einsum, numpy, jax_rocm60_plugin, scipy, ml_dtypes, jaxlib, jax
+Successfully installed jax-0.4.38 jax_rocm60_pjrt-0.4.35 jax_rocm60_plugin-0.4.35 jaxlib-0.4.38 ml_dtypes-0.5.1 numpy-2.2.5 opt_einsum-3.4.0 scipy-1.15.2
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+root@9f852385265d:/# python3
+Python 3.10.12 (main, Nov  6 2024, 20:22:13) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+root@9f852385265d:/# rocm-smi
+
+
+============================================ ROCm System Management Interface ============================================
+====================================================== Concise Info ======================================================
+Device  Node  IDs              Temp        Power     Partitions          SCLK    MCLK    Fan  Perf  PwrCap  VRAM%  GPU%  
+              (DID,     GUID)  (Junction)  (Socket)  (Mem, Compute, ID)                                                  
+==========================================================================================================================
+0       4     0x74a1,   28851  50.0°C      133.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+1       5     0x74a1,   50724  44.0°C      127.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+2       3     0x74a1,   60940  43.0°C      128.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+3       2     0x74a1,   22683  50.0°C      135.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+4       8     0x74a1,   53458  50.0°C      132.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+5       9     0x74a1,   52940  44.0°C      125.0W    NPS1, SPX, 0        136Mhz  900Mhz  0%   auto  750.0W  0%     0%
+6       7     0x74a1,   59108  51.0°C      133.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+7       6     0x74a1,   39291  44.0°C      126.0W    NPS1, SPX, 0        137Mhz  900Mhz  0%   auto  750.0W  0%     0%
+==========================================================================================================================
+================================================== End of ROCm SMI Log ===================================================
+root@9f852385265d:/# python3
+Python 3.10.12 (main, Nov  6 2024, 20:22:13) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+>>> 
+```
+
+Sad beep.
+
+Ok, let's try the `rocm/jax` image:
+
+```
+root@0ba725805946:/# pip install jax==0.4.38 jaxlib==0.4.38 jax_rocm60_plugin==0.4.31 jax_rocm60_pjrt==0.4.31
+Collecting jax==0.4.38
+  Downloading jax-0.4.38-py3-none-any.whl.metadata (22 kB)
+Collecting jaxlib==0.4.38
+  Downloading jaxlib-0.4.38-cp312-cp312-manylinux2014_x86_64.whl.metadata (1.0 kB)
+Requirement already satisfied: jax_rocm60_plugin==0.4.31 in /opt/venv/lib/python3.12/site-packages (0.4.31)
+Requirement already satisfied: jax_rocm60_pjrt==0.4.31 in /opt/venv/lib/python3.12/site-packages (0.4.31)
+Requirement already satisfied: ml_dtypes>=0.4.0 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.38) (0.5.1)
+Requirement already satisfied: numpy>=1.24 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.38) (1.26.4)
+Requirement already satisfied: opt_einsum in /opt/venv/lib/python3.12/site-packages (from jax==0.4.38) (3.4.0)
+Requirement already satisfied: scipy>=1.10 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.38) (1.15.2)
+Downloading jax-0.4.38-py3-none-any.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 65.7 MB/s eta 0:00:00
+Downloading jaxlib-0.4.38-cp312-cp312-manylinux2014_x86_64.whl (101.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.8/101.8 MB 52.9 MB/s eta 0:00:00
+Installing collected packages: jaxlib, jax
+  Attempting uninstall: jaxlib
+    Found existing installation: jaxlib 0.4.31
+    Uninstalling jaxlib-0.4.31:
+      Successfully uninstalled jaxlib-0.4.31
+  Attempting uninstall: jax
+    Found existing installation: jax 0.4.31
+    Uninstalling jax-0.4.31:
+      Successfully uninstalled jax-0.4.31
+Successfully installed jax-0.4.38 jaxlib-0.4.38
+root@0ba725805946:/# python3
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+<module 'jax_rocm60_plugin._triton' from '/opt/venv/lib/python3.12/site-packages/jax_rocm60_plugin/_triton.so'>
+```
+
+Much better news - as long as we pin the plugin versions at 0.4.31 which is the version with the fix, we can slightly update JAX.
