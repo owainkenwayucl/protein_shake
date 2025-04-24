@@ -8,7 +8,7 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-FROM docker.io/rocm/jax:rocm6.3.2-jax0.4.31-py3.12
+FROM docker.io/rocm/jax-community:rocm6.2.3-jax0.4.34-py3.11.10
 
 # Some RUN statements are combined together to make Docker build run faster.
 # Get latest package listing, install software-properties-common, git, wget,
@@ -21,7 +21,7 @@ RUN apt-get update --quiet \
     && apt-get install --yes --quiet software-properties-common \
     && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd hmmer
 
-RUN python3.12 -m venv /alphafold3_venv
+RUN python3.11 -m venv /alphafold3_venv
 ENV PATH="/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
 # this is used as a recipe for local installation since we rely on new pip
@@ -29,15 +29,10 @@ ENV PATH="/alphafold3_venv/bin:$PATH"
 RUN pip3 install --upgrade pip
 
 # Install the ROCM versions of JAX into the venv
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jaxlib-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax-0.4.31-py3-none-any.whl
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax_rocm60_pjrt-0.4.31-py3-none-manylinux_2_28_x86_64.whl
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax_rocm60_plugin-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
-
-RUN pip3 install jax==0.4.35 \
-                 jaxlib==0.4.35 \
-                 jax_rocm60_pjrt-0.4.31-py3-none-manylinux_2_28_x86_64.whl \
-                 jax_rocm60_plugin-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
+RUN pip3 install /rocm_jax_wheels/jax-0.4.34-py3-none-any.whl \
+                 /rocm_jax_wheels/jax_rocm60_pjrt-0.4.34-py3-none-manylinux_2_28_x86_64.whl \
+                 /rocm_jax_wheels/jax_rocm60_plugin-0.4.34-cp311-cp311-manylinux_2_28_x86_64.whl \
+                 /rocm_jax_wheels/jaxlib-0.4.34-cp311-cp311-manylinux_2_28_x86_64.whl
 
 # Copy the AlphaFold 3 source code from the local machine to the container and
 # set the working directory to there.
@@ -45,8 +40,7 @@ COPY . /app/alphafold
 WORKDIR /app/alphafold
 
 # Install the Python dependencies AlphaFold 3 needs.
-RUN pip3 install -r dev-requirements-jax-0.4.31.txt
-RUN pip3 install jax-triton==0.2.0 --no-deps
+RUN pip3 install -r dev-requirements-jax-0.4.34.txt
 RUN CC=gcc-10 CXX=g++-10 pip3 install --no-deps .
 # Build chemical components database (this binary was installed by pip).
 RUN build_data
