@@ -417,3 +417,41 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 
 Much better news - as long as we pin the plugin versions at 0.4.31 which is the version with the fix, we can slightly update JAX.
+
+We can definitely do version 0.4.35 which is the version AlphaFold 3 has pinned in their requirements.
+
+```
+root@0ba725805946:/# pip install jax==0.4.35 jaxlib==0.4.35 jax_rocm60_plugin==0.4.31 jax_rocm60_pjrt==0.4.31
+Collecting jax==0.4.35
+  Downloading jax-0.4.35-py3-none-any.whl.metadata (22 kB)
+Collecting jaxlib==0.4.35
+  Downloading jaxlib-0.4.35-cp312-cp312-manylinux2014_x86_64.whl.metadata (983 bytes)
+Requirement already satisfied: jax_rocm60_plugin==0.4.31 in /opt/venv/lib/python3.12/site-packages (0.4.31)
+Requirement already satisfied: jax_rocm60_pjrt==0.4.31 in /opt/venv/lib/python3.12/site-packages (0.4.31)
+Requirement already satisfied: ml-dtypes>=0.4.0 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.35) (0.5.1)
+Requirement already satisfied: numpy>=1.24 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.35) (1.26.4)
+Requirement already satisfied: opt-einsum in /opt/venv/lib/python3.12/site-packages (from jax==0.4.35) (3.4.0)
+Requirement already satisfied: scipy>=1.10 in /opt/venv/lib/python3.12/site-packages (from jax==0.4.35) (1.15.2)
+Downloading jax-0.4.35-py3-none-any.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 130.4 MB/s eta 0:00:00
+Downloading jaxlib-0.4.35-cp312-cp312-manylinux2014_x86_64.whl (87.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 MB 32.4 MB/s eta 0:00:00
+Installing collected packages: jaxlib, jax
+  Attempting uninstall: jaxlib
+    Found existing installation: jaxlib 0.4.38
+    Uninstalling jaxlib-0.4.38:
+      Successfully uninstalled jaxlib-0.4.38
+  Attempting uninstall: jax
+    Found existing installation: jax 0.4.38
+    Uninstalling jax-0.4.38:
+      Successfully uninstalled jax-0.4.38
+Successfully installed jax-0.4.35 jaxlib-0.4.35
+root@0ba725805946:/# python3
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+<module 'jax_rocm60_plugin._triton' from '/opt/venv/lib/python3.12/site-packages/jax_rocm60_plugin/_triton.so'>
+```
+
+Now to update the Dockerfile and build a new container.
