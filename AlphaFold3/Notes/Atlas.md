@@ -455,3 +455,76 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 
 Now to update the Dockerfile and build a new container.
+
+Built with:
+
+```
+podman build -t alphafold3:proteinshake-jax0.4.35 -f Dockerfile.rocm
+```
+
+Very promising:
+
+```
+[uccaoke@ip-10-134-25-2 alphafold3]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/podmanhome:/home/uccaoke:Z localhost/alphafold3:proteinshake-jax0.4.35 /bin/bash -l
+root@881390ccb04d:/app/alphafold# python3
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+root@881390ccb04d:/app/alphafold# pip list
+Package           Version
+----------------- --------
+absl-py           2.1.0
+alphafold3        3.0.1
+chex              0.1.87
+dm-haiku          0.0.13
+dm-tree           0.1.8
+filelock          3.16.1
+jax               0.4.35
+jax-rocm60-pjrt   0.4.31
+jax-rocm60-plugin 0.4.31
+jax-triton        0.2.0
+jaxlib            0.4.35
+jaxtyping         0.2.34
+jmp               0.0.4
+ml_dtypes         0.5.0
+numpy             2.1.3
+opt_einsum        3.4.0
+pillow            11.0.0
+pip               25.0.1
+rdkit             2024.3.5
+scipy             1.14.1
+setuptools        79.0.1
+tabulate          0.9.0
+toolz             1.0.0
+tqdm              4.67.0
+triton            3.1.0
+typeguard         2.13.3
+typing_extensions 4.12.2
+zstandard         0.23.0
+root@881390ccb04d:/app/alphafold# python3
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from jaxlib import gpu_triton
+>>> gpu_triton._hip_triton
+<module 'jax_rocm60_plugin._triton' from '/alphafold3_venv/lib/python3.12/site-packages/jax_rocm60_plugin/_triton.so'>
+>>> 
+```
+
+Here we go:
+
+```
+[uccaoke@ip-10-134-25-2 alphafold3]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-jax0.4.35 sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+
+Running AlphaFold 3. Please note that standard AlphaFold 3 model parameters are
+only available under terms of use provided at
+https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md.
+If you do not agree to these terms and are using AlphaFold 3 derived model
+parameters, cancel execution of AlphaFold 3 inference with CTRL-C, and do not
+use the model parameters.
+
+Found local devices: [RocmDevice(id=0), RocmDevice(id=1), RocmDevice(id=2), RocmDevice(id=3), RocmDevice(id=4), RocmDevice(id=5), RocmDevice(id=6), RocmDevice(id=7)], using device 0: rocm:0
+Building model from scratch...
+Checking that model parameters can be loaded...
+```
+
+This eventually fails with a bunch of stack traces about shapes of things not matching which I think means that you can't use this old a plugin with this new a JAX.
