@@ -310,3 +310,9 @@ Done running 1 fold jobs.
 ```
 
 There is a patch for `run_alphafold.py` in `Patches` - it needs to be applied before you build the container.
+
+## Returning after notes
+
+https://github.com/ROCm/jax/issues/339#issuecomment-2825420288
+
+Let's see if we can get the newer JAX to play ball.
