@@ -29,8 +29,6 @@ ENV PATH="/alphafold3_venv/bin:$PATH"
 RUN pip3 install --upgrade pip
 
 # Install the ROCM versions of JAX into the venv
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jaxlib-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
-RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax-0.4.31-py3-none-any.whl
 RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax_rocm60_pjrt-0.4.31-py3-none-manylinux_2_28_x86_64.whl
 RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax_rocm60_plugin-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
 
@@ -45,8 +43,8 @@ COPY . /app/alphafold
 WORKDIR /app/alphafold
 
 # Install the Python dependencies AlphaFold 3 needs.
-RUN pip3 install -r dev-requirements-jax-0.4.31.txt
-RUN pip3 install jax-triton==0.2.0 --no-deps
+RUN pip3 install -r dev-requirements-jax-0.4.35.txt
+# RUN pip3 install jax-triton==0.2.0 --no-deps
 RUN CC=gcc-10 CXX=g++-10 pip3 install --no-deps .
 # Build chemical components database (this binary was installed by pip).
 RUN build_data
