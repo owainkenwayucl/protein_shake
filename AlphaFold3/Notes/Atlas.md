@@ -239,10 +239,7 @@ ValueError: could not convert string to float: 'gfx942'
 We know what this is, this is the check for Volta cards which need to be treated special. So we should be able to modify `run_alphafold.py` to fix it.
 
 ```
-[uccaoke@ip-10-134-25-2 alphafold3]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:
-Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-old sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-k
-ernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attent
-ion_implementation=xla"
+[uccaoke@ip-10-134-25-2 alphafold3]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-old sh -c "XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
 I0403 15:32:51.938552 140574038458496 xla_bridge.py:897] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 
 Running AlphaFold 3. Please note that standard AlphaFold 3 model parameters are
