@@ -34,8 +34,8 @@ RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jax_rocm60_plugin
 
 RUN pip3 install jax==0.4.35 \
                  jaxlib==0.4.35 \
-                 jax_rocm60_pjrt-0.4.31-py3-none-manylinux_2_28_x86_64.whl \
-                 jax_rocm60_plugin-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
+                 jax_rocm60_plugin==0.4.35 \
+                 jax_rocm60_pjrt
 
 # Copy the AlphaFold 3 source code from the local machine to the container and
 # set the working directory to there.
