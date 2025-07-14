@@ -525,3 +525,35 @@ Checking that model parameters can be loaded...
 ```
 
 This eventually fails with a bunch of stack traces about shapes of things not matching which I think means that you can't use this old a plugin with this new a JAX.
+
+## July 14th, 2025
+
+Comment here: [linkedin](https://www.linkedin.com/feed/update/urn:li:ugcPost:7331629859665842176?commentUrn=urn%3Ali%3Acomment%3A%28ugcPost%3A7331629859665842176%2C7350451920827834369%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287350451920827834369%2Curn%3Ali%3AugcPost%3A7331629859665842176%29)
+
+Note: These improvements result in printing out the usage information of jackhmmer.
+
+I'm trying suppressing this by changing
+
+```python
+def jackhmmer_seq_limit_supported(jackhmmer_path: str) -> bool:
+  """Checks if Jackhmmer supports the --seq-limit flag."""
+  try:
+    subprocess.run([jackhmmer_path, '-h', '--seq_limit', '1'], check=True)
+  except subprocess.CalledProcessError:
+    return False
+  return True
+```
+
+to
+
+```python
+def jackhmmer_seq_limit_supported(jackhmmer_path: str) -> bool:
+  """Checks if Jackhmmer supports the --seq-limit flag."""
+  try:
+    subprocess.run([jackhmmer_path, '-h', '--seq_limit', '1'], capture_output=True, check=True)
+  except subprocess.CalledProcessError:
+    return False
+  return True
+```
+
+If that works I'll generate a patch and add that to this repo.

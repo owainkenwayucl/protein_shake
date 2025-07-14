@@ -19,14 +19,39 @@ FROM docker.io/rocm/jax-community:rocm6.2.3-jax0.4.34-py3.11.10
 RUN apt-get update --quiet \
     && apt-get dist-upgrade --yes --quiet \
     && apt-get install --yes --quiet software-properties-common \
-    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd hmmer
+    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd
 
 RUN python3.11 -m venv /alphafold3_venv
-ENV PATH="/alphafold3_venv/bin:$PATH"
+ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
 # this is used as a recipe for local installation since we rely on new pip
 # features for secure installs.
 RUN pip3 install --upgrade pip
+
+# Install HMMER. Do so before copying the source code, so that docker can cache
+# the image layer containing HMMER. Alternatively, you could also install it
+# using `apt-get install hmmer` instead of bulding it from source, but we want
+# to have control over the exact version of HMMER and also apply the sequence
+# limit patch. Also note that eddylab.org unfortunately doesn't support HTTPS
+# and the tar file published on GitHub is explicitly not recommended to be used
+# for building from source.
+
+# Download, check hash, and extract the HMMER source code.
+RUN mkdir /hmmer_build /hmmer ; \
+    wget http://eddylab.org/software/hmmer/hmmer-3.4.tar.gz --directory-prefix /hmmer_build ; \
+    (cd /hmmer_build && echo "ca70d94fd0cf271bd7063423aabb116d42de533117343a9b27a65c17ff06fbf3 hmmer-3.4.tar.gz" | sha256sum --check) && \
+    (cd /hmmer_build && tar zxf hmmer-3.4.tar.gz && rm hmmer-3.4.tar.gz)
+
+# Apply the --seq_limit patch to HMMER.
+COPY docker/jackhmmer_seq_limit.patch /hmmer_build/
+RUN (cd /hmmer_build && patch -p0 < jackhmmer_seq_limit.patch)
+
+# Build HMMER.
+RUN (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 ./configure --prefix /hmmer) ; \
+    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make -j) ; \
+    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make install) ; \
+    (cd /hmmer_build/hmmer-3.4/easel && CC=gcc-10 CXX=g++-10  make install) ; \
+    rm -R /hmmer_build
 
 # Install the ROCM versions of JAX into the venv
 RUN pip3 install /rocm_jax_wheels/jax-0.4.34-py3-none-any.whl \
