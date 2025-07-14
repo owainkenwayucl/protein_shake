@@ -22,7 +22,7 @@ RUN apt-get update --quiet \
     && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd
 
 RUN python3.12 -m venv /alphafold3_venv
-ENV PATH="/alphafold3_venv/bin:$PATH"
+ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
 # this is used as a recipe for local installation since we rely on new pip
 # features for secure installs.
@@ -52,6 +52,8 @@ RUN (cd /hmmer_build/hmmer-3.4 && ./configure --prefix /hmmer) ; \
     (cd /hmmer_build/hmmer-3.4 && make install) ; \
     (cd /hmmer_build/hmmer-3.4/easel && make install) ; \
     rm -R /hmmer_build
+
+
 
 # Install the ROCM versions of JAX into the venv
 RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-6.3.2/jaxlib-0.4.31-cp312-cp312-manylinux_2_28_x86_64.whl
