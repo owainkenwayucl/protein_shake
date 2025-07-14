@@ -557,3 +557,5 @@ def jackhmmer_seq_limit_supported(jackhmmer_path: str) -> bool:
 ```
 
 If that works I'll generate a patch and add that to this repo.
+
+I've done a PR for this https://github.com/google-deepmind/alphafold3/pull/470
