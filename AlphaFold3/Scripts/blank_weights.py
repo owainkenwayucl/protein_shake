@@ -1,5 +1,5 @@
 # This script creates an alphafold3 weights shaped object from the real weights, but with all
-# the values replaced by 1.0 in the appropriate format. This is useful as a proxy set of weights
+# the values replaced by 0.0 in the appropriate format. This is useful as a proxy set of weights
 # to get the code working without generating real results.
 
 from pathlib import Path
@@ -15,10 +15,10 @@ for a in k.keys():
 	for b in k[a].keys():
 		s = k[a][b].shape
 		t = k[a][b].dtype
-		n = jnp.ones(s,t)
+		n = jnp.zeros(s,t)
 		k[a][b] = n		
 		
-with open('ones.bin', 'wb') as file:
+with open('zeros.bin', 'wb') as file:
 	for a in k.keys():
 		for b in k[a].keys():
 			arr = k[a][b]
