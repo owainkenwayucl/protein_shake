@@ -19,7 +19,7 @@ FROM docker.io/rocm/jax:rocm7.2-jax0.8.0-py3.12
 RUN apt-get update --quiet \
     && apt-get dist-upgrade --yes --quiet \
     && apt-get install --yes --quiet software-properties-common \
-    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd
+    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd python3.12-venv python3.12-dev
 
 RUN python3.12 -m venv /alphafold3_venv
 ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
@@ -61,7 +61,7 @@ RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/jax_rocm7_plugin-0.
 RUN wget https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/jax_rocm7_pjrt-0.8.0%2Brocm7.2.0-py3-none-manylinux_2_28_x86_64.whl
 
 RUN pip3 install jax*.whl \
-                 'jax==0.8.0' \
+                 'jax==0.8.0' 
 
 # Copy the AlphaFold 3 source code from the local machine to the container and
 # set the working directory to there.
