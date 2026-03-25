@@ -559,3 +559,14 @@ def jackhmmer_seq_limit_supported(jackhmmer_path: str) -> bool:
 If that works I'll generate a patch and add that to this repo.
 
 I've done a PR for this https://github.com/google-deepmind/alphafold3/pull/470
+
+## March 25th, 2026
+
+It looks like there have been massive changes to AF3, including support for newer JAX and sadly, a move to `uv`.
+
+In a first attempt, I've checked out the last non-`uv` version (b78e215) and built a new container based on the JAX 0.8.0 container from AMD.
+
+Of course we have the usual annoyances as this is 0.8.0 vs 0.8.1 which is the one we are supposed to be using. I've generated a new requirements text file as well, and we need to do the usual nodeps shenanigans for one library.
+
+Another annoyance is that there is a missing environment variable in the container (`LLVM_PATH`) which needs to be set as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
+
