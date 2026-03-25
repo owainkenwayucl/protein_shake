@@ -570,3 +570,7 @@ Of course we have the usual annoyances as this is 0.8.0 vs 0.8.1 which is the on
 
 Another annoyance is that there is a missing environment variable in the container (`LLVM_PATH`) which needs to be set as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
 
+
+OH FFS: https://github.com/openxla/tokamax/blob/873b8872cb01ece20b573ae408d8a481113e0507/tokamax/_src/triton.py#L39
+
+
