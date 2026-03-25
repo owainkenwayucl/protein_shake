@@ -19,7 +19,8 @@ FROM docker.io/rocm/jax:rocm7.2-jax0.8.0-py3.12
 RUN apt-get update --quiet \
     && apt-get dist-upgrade --yes --quiet \
     && apt-get install --yes --quiet software-properties-common \
-    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd python3.12-venv python3.12-dev
+    && apt-get install --yes --quiet git wget gcc g++ gcc-10 g++-10 make zlib1g-dev zstd  python3.12-venv python3.12-dev
+
 
 RUN python3.12 -m venv /alphafold3_venv
 ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
@@ -69,9 +70,8 @@ COPY . /app/alphafold
 WORKDIR /app/alphafold
 
 # Install the Python dependencies AlphaFold 3 needs.
-RUN pip3 install -r requirements.txt_nohash 
-#RUN pip3 install jax-triton==0.2.0 --no-deps
-#RUN CC=gcc-10 CXX=g++-10 pip3 install --no-deps .
+RUN pip3 install -r requirements_080.txt
+RUN pip3 install tokamax==0.0.8 --no-deps
 RUN pip3 install --no-deps .
 # Build chemical components database (this binary was installed by pip).
 RUN build_data
@@ -86,5 +86,8 @@ ENV XLA_FLAGS="--xla_gpu_enable_triton_gemm=false"
 # Memory settings used for folding up to 5,120 tokens on A100 80 GB.
 ENV XLA_PYTHON_CLIENT_PREALLOCATE=true
 ENV XLA_CLIENT_MEM_FRACTION=0.95
+
+# Fix for ld.lld error as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
+ENV LLVM_PATH=/opt/rocm/llvm
 
 CMD ["python3", "run_alphafold.py"]
