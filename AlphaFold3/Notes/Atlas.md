@@ -573,4 +573,46 @@ Another annoyance is that there is a missing environment variable in the contain
 
 OH FFS: https://github.com/openxla/tokamax/blob/873b8872cb01ece20b573ae408d8a481113e0507/tokamax/_src/triton.py#L39
 
+## March 26th, 2026
+
+I moved to fixing the compute capability issues with `sed`, and note that this is also a problem in `precision.py` in tokamax.
+
+Now I'm here:
+
+```
+Running model inference with seed 1...
+I0326 10:36:54.052458 139916089590080 cache.py:95] Autotuning cache file not found: /alphafold3_venv/lib/python3.12/site-packages/tokamax/data/autotuning/amd_instinct_mi300x/pallas_triton_gated_linear_unit.json
+/alphafold3_venv/lib/python3.12/site-packages/alphafold3/model/network/featurization.py:104: UserWarning: Explicitly requested dtype int64 requested in broadcasted_iota is not available, and will be truncated to dtype int32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+  iota = jax.lax.broadcasted_iota(jnp.int64, logits.shape, axis)
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 978, in <module>
+    app.run(main)
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 316, in run
+    _run_main(main, args)
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 261, in _run_main
+    sys.exit(main(argv))
+             ^^^^^^^^^^
+  File "/app/alphafold/run_alphafold.py", line 960, in main
+    process_fold_input(
+  File "/app/alphafold/run_alphafold.py", line 793, in process_fold_input
+    all_inference_results = predict_structure(
+                            ^^^^^^^^^^^^^^^^^^
+  File "/app/alphafold/run_alphafold.py", line 542, in predict_structure
+    result = model_runner.run_inference(example, rng_key)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/alphafold/run_alphafold.py", line 437, in run_inference
+    result = self._model(rng_key, featurised_example)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jax.errors.JaxRuntimeError: RESOURCE_EXHAUSTED: Shared memory size limit exceeded: requested 73728, available: 65536
+```
+
+You might thinkg you can fix this by changing the shm size when running podman but since we have `--ipc=host` we can't.
+
+Also:
+```
+root@27fbc6ccf8f3:/app/alphafold# df -h /dev/shm
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           1.2T  120K  1.2T   1% /dev/shm
+root@27fbc6ccf8f3:/app/alphafold# 
+```
 
