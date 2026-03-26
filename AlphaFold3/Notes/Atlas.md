@@ -723,3 +723,38 @@ So.
 Bugger.
 
 Also, sad noises "jax.core.Primitive was removed in JAX v0.6.0".
+
+Since the error is in `jax-triton` I'll try pulling that up to the latest (0.3.1)
+
+```
+[uccaoke@atlas Docker]$  podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-080h sh -c "ROCR_VISIBLE_DEVICES=2 XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 47, in <module>
+    from alphafold3.model import model
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/model/model.py", line 27, in <module>
+    from alphafold3.model.components import mapping
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/model/components/mapping.py", line 17, in <module>
+    import haiku as hk
+  File "/alphafold3_venv/lib/python3.12/site-packages/haiku/__init__.py", line 20, in <module>
+    from haiku import experimental
+  File "/alphafold3_venv/lib/python3.12/site-packages/haiku/experimental/__init__.py", line 37, in <module>
+    from haiku._src.layer_stack import layer_stack
+  File "/alphafold3_venv/lib/python3.12/site-packages/haiku/_src/layer_stack.py", line 23, in <module>
+    from haiku._src import lift
+  File "/alphafold3_venv/lib/python3.12/site-packages/haiku/_src/lift.py", line 24, in <module>
+    from haiku._src import transform
+  File "/alphafold3_venv/lib/python3.12/site-packages/haiku/_src/transform.py", line 341, in <module>
+    COMPILED_FN_TYPES = (jax.lib.xla_extension.PjitFunction,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/deprecations.py", line 54, in getattr
+    raise AttributeError(message)
+AttributeError: jax.lib.xla_extension.PjitFunction is deprecated.
+```
+
+OK - we need a newer haiku.
+
+*[ here we cut to Owain updating half the packages to try and make them consistent ]*
+
+I gave up and tried to replicate the setup my colleague has based on JAX 0.6.0
+
+This is `Dockerfile.rocm-0.6.0-hax`.  In my testing it has the numerical issues that I've seen before with JAX 0.6.0 and AF3 but if we are using proxy weights anyway do we care?
