@@ -618,3 +618,108 @@ root@27fbc6ccf8f3:/app/alphafold#
 
 I'm going to assume that this is GPU memory related so I've set `XLA_PYTHON_CLIENT_PREALLOCATE=false` on the command-line - let's see what happens.
 
+It didn't work.
+
+Sooooo.
+
+I've re-organised the Docker stuff a bit, partly so it downloads the correct version of AF3 from git for each version. There's a finicky annoyance that the Jackhammer patch in `docker` has gone AWOL in 3.0.1. Having retrived it, and put it in `docker/` relative to the docker files, and hard linked the appropriate requirements text files into the Docker directory, you should just be able to build the containers without checking out a copy of AF3 on the host (ignoring that you need to check out an old one to get the patch).
+
+The current situation is I can build two containers - one based on JAX 0.8.0 which doesn't work for the `RESOURCE_EXHAUSTED` reason and one built on 0.4.31 which works for some cases, but in others dies with a weird LLVM error:
+
+```
+Featurising data with seed 1 took 4.52 seconds.
+Featurising data with 1 seed(s) took 8.96 seconds.
+Running model inference and extracting output structure samples with 1 seed(s)...
+Running model inference with seed 1...
+LLVM ERROR: Cannot select: 0x53299090: bf16 = uint_to_fp # D:1 0x559c2b60
+  0x559c2b60: i1,ch = CopyFromReg # D:1 0x4e1f6cc0, Register:i1 %30
+    0x5660a690: i1 = Register %30
+In function: loop_pad_fusion_7
+Fatal Python error: Aborted
+
+Current thread 0x00007fca3ffe3080 (most recent call first):
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/compiler.py", line 267 in backend_compile
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/profiler.py", line 336 in wrapper
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/compiler.py", line 627 in _compile_and_write_cache
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/compiler.py", line 399 in compile_or_get_cached
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/interpreters/pxla.py", line 2621 in _cached_compilation
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/interpreters/pxla.py", line 2807 in from_hlo
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/interpreters/pxla.py", line 2295 in compile
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/pjit.py", line 1642 in _pjit_call_impl_python
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/pjit.py", line 1712 in call_impl_cache_miss
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/pjit.py", line 1730 in _pjit_call_impl
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/core.py", line 939 in process_primitive
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/core.py", line 433 in bind_with_trace
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/core.py", line 2739 in bind
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/pjit.py", line 190 in _python_pjit_helper
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/pjit.py", line 332 in cache_miss
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/traceback_util.py", line 180 in reraise_with_filtered_traceback
+  File "/app/alphafold/run_alphafold.py", line 368 in run_inference
+  File "/app/alphafold/run_alphafold.py", line 473 in predict_structure
+  File "/app/alphafold/run_alphafold.py", line 720 in process_fold_input
+  File "/app/alphafold/run_alphafold.py", line 879 in main
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 254 in _run_main
+  File "/alphafold3_venv/lib/python3.12/site-packages/absl/app.py", line 308 in run
+  File "/app/alphafold/run_alphafold.py", line 897 in <module>
+
+Extension modules: numpy._core._multiarray_umath, numpy.linalg._umath_linalg, rdkit.rdBase, rdkit.DataStructs.cDataStructs, rdkit.Chem.rdchem, rdkit.Geometry.rdGeometry, rdkit.Chem.rdinchi, rdkit.Chem.rdCIPLabeler, rdkit.Chem.rdmolfiles, rdkit.Chem.rdmolops, rdkit.Chem.rdMolInterchange, rdkit.Chem.rdCoordGen, zstandard.backend_c, rdkit.ForceField.rdForceField, rdkit.Chem.rdChemicalFeatures, rdkit.Chem.rdMolChemicalFeatures, rdkit.Chem.rdDistGeom, rdkit.Chem.rdChemReactions, rdkit.Chem.rdDepictor, rdkit.Chem.rdFingerprintGenerator, rdkit.Chem.rdForceFieldHelpers, rdkit.Chem.rdMolAlign, rdkit.Chem.rdMolDescriptors, rdkit.Chem.rdMolEnumerator, rdkit.Chem.rdMolTransforms, rdkit.Chem.rdPartialCharges, rdkit.Chem.rdqueries, rdkit.Chem.rdReducedGraphs, rdkit.Chem.rdShapeHelpers, rdkit.Chem.rdSLNParse, jaxlib.cpu_feature_guard, numpy.random._common, numpy.random.bit_generator, numpy.random._bounded_integers, numpy.random._mt19937, numpy.random.mtrand, numpy.random._philox, numpy.random._pcg64, numpy.random._sfc64, numpy.random._generator, scipy._lib._ccallback_c, scipy.sparse._sparsetools, _csparsetools, scipy.sparse._csparsetools, scipy.linalg._fblas, scipy.linalg._flapack, scipy.linalg.cython_lapack, scipy.linalg._cythonized_array_utils, scipy.linalg._solve_toeplitz, scipy.linalg._decomp_lu_cython, scipy.linalg._matfuncs_sqrtm_triu, scipy.linalg.cython_blas, scipy.linalg._matfuncs_expm, scipy.linalg._decomp_update, scipy.sparse.linalg._dsolve._superlu, scipy.sparse.linalg._eigen.arpack._arpack, scipy.sparse.linalg._propack._spropack, scipy.sparse.linalg._propack._dpropack, scipy.sparse.linalg._propack._cpropack, scipy.sparse.linalg._propack._zpropack, scipy.sparse.csgraph._tools, scipy.sparse.csgraph._shortest_path, scipy.sparse.csgraph._traversal, scipy.sparse.csgraph._min_spanning_tree, scipy.sparse.csgraph._flow, scipy.sparse.csgraph._matching, scipy.sparse.csgraph._reordering, scipy.spatial._ckdtree, scipy._lib.messagestream, scipy.spatial._qhull, scipy.spatial._voronoi, scipy.spatial._distance_wrap, scipy.spatial._hausdorff, scipy.special._ufuncs_cxx, scipy.special._ufuncs, scipy.special._specfun, scipy.special._comb, scipy.special._ellip_harm_2, scipy.spatial.transform._rotation (total: 79)
+Aborted (core dumped)
+```
+
+I'm going to guess this is fixed in newer LLVM which means newer ROCm which means newer JAX. As you can see I'm sort of stuck between different things that don't work.
+
+I think the ideal situation would be to use AF3.0.1 with newer JAX as the development version which *supports* newer JAX has lots of broken dependencies which I believe lead to the `EXHAUSTION` problem.
+
+So let us try.
+
+
+Well I built two versions - 0431h which has the wheels from JAX 0.4.31 on the base image for 0.8.0. and 080h which uses JAX 0.8.0 with all the stuff from AF3.0.1. Both fail in different ways.
+
+0431h:
+
+```
+[uccaoke@atlas ~]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-0431h sh -c "ROCR_VISIBLE_DEVICES=2 XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 43, in <module>
+    from alphafold3.data import featurisation
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/data/featurisation.py", line 19, in <module>
+    from alphafold3.model import features
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/model/features.py", line 31, in <module>
+    from alphafold3.model import merging_features
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/model/merging_features.py", line 21, in <module>
+    import jax.numpy as jnp
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/__init__.py", line 25, in <module>
+    from jax._src.cloud_tpu_init import cloud_tpu_init as _cloud_tpu_init
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/cloud_tpu_init.py", line 17, in <module>
+    from jax._src import config
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/config.py", line 27, in <module>
+    from jax._src import lib
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax/_src/lib/__init__.py", line 83, in <module>
+    import jaxlib.cpu_feature_guard as cpu_feature_guard
+ImportError: libamdhip64.so.6: cannot open shared object file: No such file or directory
+```
+
+080h:
+
+```
+[uccaoke@atlas ~]$ podman run -it --rm --group-add keep-groups --device /dev/kfd:rwm --device /dev/dri:rwm --ipc=host -v $HOME/af_input:/root/af_input:Z -v $HOME/af_output:/root/af_output:Z -v $HOME/Datasets/alphafold3/weights:/root/models:Z -v $HOME/Datasets/alphafold3/databases:/root/public_databases  localhost/alphafold3:proteinshake-080h sh -c "ROCR_VISIBLE_DEVICES=2 XLA_FLAGS='--xla_disable_hlo_passes=custom-kernel-fusion-rewriter' python3 /app/alphafold/run_alphafold.py --json_path=/root/af_input/fold_input.json --model_dir=/root/models --db_dir=/root/public_databases --output_dir=/root/af_output --flash_attention_implementation=xla"
+Traceback (most recent call last):
+  File "/app/alphafold/run_alphafold.py", line 45, in <module>
+    from alphafold3.jax.attention import attention
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/jax/attention/attention.py", line 17, in <module>
+    from alphafold3.jax.attention import flash_attention as attention_triton
+  File "/alphafold3_venv/lib/python3.12/site-packages/alphafold3/jax/attention/flash_attention.py", line 22, in <module>
+    import jax_triton as jt
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax_triton/__init__.py", line 29, in <module>
+    from jax_triton.triton_lib import triton_call
+  File "/alphafold3_venv/lib/python3.12/site-packages/jax_triton/triton_lib.py", line 151, in <module>
+    triton_kernel_call_p = jax.core.Primitive("triton_kernel_call")
+                           ^^^^^^^^^^^^^^^^^^
+AttributeError: module 'jax.core' has no attribute 'Primitive'. Did you mean: 'CallPrimitive'?
+```
+
+So.
+
+Bugger.
+
+Also, sad noises "jax.core.Primitive was removed in JAX v0.6.0".
