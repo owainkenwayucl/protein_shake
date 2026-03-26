@@ -95,6 +95,7 @@ ENV LLVM_PATH=/opt/rocm/llvm
 
 # Fix for tokamax thinking compute capability is a float
 RUN sed -i 's|return float(device.compute_capability) >= 8.0|return True|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/triton.py
+RUN sed -i 's|compute_capability = getattr(device, "compute_capability", None)|compute_capability = 942.0|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/precision.py
 
 
 CMD ["python3", "run_alphafold.py"]
