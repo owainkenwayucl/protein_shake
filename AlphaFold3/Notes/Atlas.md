@@ -758,3 +758,11 @@ OK - we need a newer haiku.
 I gave up and tried to replicate the setup my colleague has based on JAX 0.6.0
 
 This is `Dockerfile.rocm-0.6.0-hax`.  In my testing it has the numerical issues that I've seen before with JAX 0.6.0 and AF3 but if we are using proxy weights anyway do we care?
+
+## 18:20pm
+
+Chatting with Claude it has some suggestions for XLA flags which have helped with the numerical issues - now narrowing down exactly what works so I can bake it into the containers.
+
+`XLA_FLAGS='--xla_gpu_enable_triton_gemm=false --xla_disable_hlo_passes=custom-kernel-fusion-rewriter'`
+
+I say helped as the NaNs are gone but it's still obviously wrong on 2PV7.
