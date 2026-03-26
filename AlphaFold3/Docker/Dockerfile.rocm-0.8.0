@@ -69,6 +69,9 @@ RUN pip3 install jax*.whl \
 COPY . /app/alphafold
 WORKDIR /app/alphafold
 
+# Fix for alphafold3 thinking compute capability is a float
+RUN sed -i 's|gpu_devices[_GPU_DEVICE.value].compute_capability|942.0|' /app/alphafold/run_alphafold.py
+
 # Install the Python dependencies AlphaFold 3 needs.
 RUN pip3 install -r requirements_080.txt
 RUN pip3 install tokamax==0.0.8 --no-deps
@@ -89,5 +92,9 @@ ENV XLA_CLIENT_MEM_FRACTION=0.95
 
 # Fix for ld.lld error as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
 ENV LLVM_PATH=/opt/rocm/llvm
+
+# Fix for tokamax thinking compute capability is a float
+RUN sed -i 's|return float(device.compute_capability) >= 8.0|return True|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/triton.py
+
 
 CMD ["python3", "run_alphafold.py"]
