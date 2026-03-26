@@ -616,3 +616,5 @@ tmpfs           1.2T  120K  1.2T   1% /dev/shm
 root@27fbc6ccf8f3:/app/alphafold# 
 ```
 
+I'm going to assume that this is GPU memory related so I've set `XLA_PYTHON_CLIENT_PREALLOCATE=false` on the command-line - let's see what happens.
+
