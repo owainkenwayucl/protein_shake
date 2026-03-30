@@ -759,10 +759,42 @@ I gave up and tried to replicate the setup my colleague has based on JAX 0.6.0
 
 This is `Dockerfile.rocm-0.6.0-hax`.  In my testing it has the numerical issues that I've seen before with JAX 0.6.0 and AF3 but if we are using proxy weights anyway do we care?
 
-## 18:20pm
+### 18:20pm
 
 Chatting with Claude it has some suggestions for XLA flags which have helped with the numerical issues - now narrowing down exactly what works so I can bake it into the containers.
 
 `XLA_FLAGS='--xla_gpu_enable_triton_gemm=false --xla_disable_hlo_passes=custom-kernel-fusion-rewriter'`
 
 I say helped as the NaNs are gone but it's still obviously wrong on 2PV7.
+
+
+## March 30th, 2026
+
+I noticed last week while building things that there are wheels for triton for the newer versions ROCm https://repo.radeon.com/rocm/manylinux/rocm-rel-7.0.2/ 
+
+I decided to try putting them (3.3.1, Torch 2.7.1) into the 0.6.0 container and, after the usual compute capababilities fuckery I get an exciting new error!
+
+```
+triton.compiler.errors.CompilationError: at 56:11:
+    )
+
+    if use_bias:
+      bias = tl.load(bias_block_ptr)
+
+    qk = dot_fn_qk(q.to(k.dtype), k)  # [block_q, block_k]
+
+    if use_bias:
+      # Prevent dot accumulating into the bias tensor. It appears that Triton
+      # doesn't pipeline the bias load as it does the `k` load, so the bias load
+      # blocks the matmul if the add is merged.
+      qk = qk.to(tl.int32, bitcast=True) & 0xFFFFFFFF
+           ^
+ValueError('Scalar 4294967295 is out of range for type int32')
+```
+
+Maybe try a newer Triton?
+
+*NOTE* the pytorch wheels are massive so I had to set `TMPDIR` while building this so that podman didn't run out of space during the build.
+
+Newest Triton for that version of ROCm doesn't work.
+
