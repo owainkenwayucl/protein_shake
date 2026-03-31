@@ -170,5 +170,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Editor/Mac bits
+.DS_Store
+*.swp
+
 # stuff that just don't work
 AlphaFold3/Scripts/iffy/

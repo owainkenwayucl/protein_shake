@@ -50,10 +50,10 @@ COPY docker/jackhmmer_seq_limit.patch /hmmer_build/
 RUN (cd /hmmer_build && patch -p0 < jackhmmer_seq_limit.patch)
 
 # Build HMMER.
-RUN (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 ./configure --prefix /hmmer) ; \
-    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make -j) ; \
-    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make install) ; \
-    (cd /hmmer_build/hmmer-3.4/easel && CC=gcc-10 CXX=g++-10  make install) ; \
+RUN (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 ./configure --prefix /hmmer) && \
+    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make -j) && \
+    (cd /hmmer_build/hmmer-3.4 && CC=gcc-10 CXX=g++-10 make install) && \
+    (cd /hmmer_build/hmmer-3.4/easel && CC=gcc-10 CXX=g++-10  make install) && \
     rm -R /hmmer_build
 
 # Copy the AlphaFold 3 source code from the local machine to the container and
