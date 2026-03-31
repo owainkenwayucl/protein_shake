@@ -798,3 +798,12 @@ Maybe try a newer Triton?
 
 Newest Triton for that version of ROCm doesn't work.
 
+## March 31st, 2026
+
+So today I decided to see if I was banging my head off a wall for no reason, or if the problem was real. I built a container with JAX 0.6.0 for Nvidia and ran it on Myriad.
+
+And it also shows the numerical issues.
+
+So it's not ROCm that's the problem!
+
+Also found a problem with the HMMER build bit of the `Dockerfile` -> PR: https://github.com/google-deepmind/alphafold3/pull/639
