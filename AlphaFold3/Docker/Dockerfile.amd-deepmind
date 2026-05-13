@@ -78,9 +78,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     UV_LINK_MODE=copy uv sync --all-groups 
 
 RUN uv pip install jax==0.9.1 jax-rocm7-plugin~=0.9.1
+RUN uv pip uninstall nvidia-cublas-cu12 nvidia-cuda-cccl-cu12  nvidia-cuda-cupti-cu12  nvidia-cuda-nvcc-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cuda-runtime-cu12 nvidia-cudnn-cu12 nvidia-cufft-cu12 nvidia-cusolver-cu12 vidia-cusolver-cu12 nvidia-cusparse-cu12  nvidia-nccl-cu12  nvidia-nvjitlink-cu12 nvidia-nvshmem-cu12 jax-cuda12-pjrt jax-cuda12-plugin
 
 # Build chemical components database (this binary was installed by uv sync).
-RUN uv run build_data
+RUN uv run --no-sync build_data
 
 # To work around a known XLA issue causing the compilation time to greatly
 # # increase, the following environment variable setting XLA flags must be enabled
@@ -95,6 +96,6 @@ ENV XLA_CLIENT_MEM_FRACTION=0.95
 # # Fix for ld.lld error as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
 ENV LLVM_PATH=/opt/rocm/llvm
 RUN sed -i 's|return float(device.compute_capability) >= 8.0|return True|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
-RUN sed -i "s|return float(getattr(device, 'compute_capability', None))|return 8.0|g" /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
-RUN sed -i 's|compute_capability = getattr(device, "compute_capability", None)|compute_capability = 8.0|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/precision.py
-CMD ["uv", "run", "python3", "run_alphafold.py"]
+RUN sed -i "s|return float(getattr(device, 'compute_capability', None))|return 9.0|g" /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
+RUN sed -i 's|compute_capability = getattr(device, "compute_capability", None)|compute_capability = 9.0|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/precision.py
+CMD ["uv", "run", "--no-sync", "python3", "run_alphafold.py"]
