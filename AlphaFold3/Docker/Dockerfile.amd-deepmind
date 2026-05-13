@@ -95,6 +95,9 @@ ENV XLA_PYTHON_CLIENT_PREALLOCATE=true
 ENV XLA_CLIENT_MEM_FRACTION=0.95
 # # Fix for ld.lld error as per https://github.com/ROCm/ROCm/issues/5998#issuecomment-3991811182
 ENV LLVM_PATH=/opt/rocm/llvm
+#RUN sed -i 's|NUM_REGISTERS_PER_SM: Final[int] = 64 * 1024|NUM_REGISTERS_PER_SM: Final[int] = 16 * 1024|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
+RUN sed -i 's|num_stages=4|num_stages=2|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/ops/gated_linear_unit/pallas_triton.py
+RUN sed -i 's|for num_stages in range(1, 6):|for num_stages in range(1, 3):|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/ops/gated_linear_unit/pallas_triton.py
 RUN sed -i 's|return float(device.compute_capability) >= 8.0|return True|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
 RUN sed -i "s|return float(getattr(device, 'compute_capability', None))|return 9.0|g" /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/gpu_utils.py
 RUN sed -i 's|compute_capability = getattr(device, "compute_capability", None)|compute_capability = 9.0|g' /alphafold3_venv/lib/python3.12/site-packages/tokamax/_src/precision.py
