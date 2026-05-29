@@ -68,6 +68,9 @@ RUN git checkout v3.0.2
 # Fix for alphafold3 thinking compute capability is a float
 RUN sed -i 's|gpu_devices\[_GPU_DEVICE.value\].compute_capability|9.42|'  /app/alphafold/run_alphafold.py
 
+# Fix for https://github.com/ROCm/rocm-jax/issues/453
+RUN sed -i '/^  e2 = jnp\.cross(e0, e1)/a\  e0, e1, e2 = jax.lax.optimization_barrier((e0, e1, e2))' /app/alphafold/src/alphafold3/model/network/diffusion_head.py
+
 # Install the exact dependency tree using uv
 RUN UV_LINK_MODE=copy UV_NO_CACHE=1 uv sync --all-groups --no-editable
 RUN uv pip install jax==0.9.1 "jax-rocm7-pjrt>=0.9.1,<0.9.2" \
@@ -82,11 +85,7 @@ RUN uv run --no-sync build_data
 # increase, the following environment variable setting XLA flags must be enabled
 # when running AlphaFold 3. 
 # ENV XLA_FLAGS="--xla_gpu_enable_triton_gemm=false"
-# On AMD we also have to set  --xla_disable_hlo_passes=fusion to prevent errors 
-# like:
-# HSA_STATUS_ERROR_MEMORY_APERTURE_VIOLATION: The agent attempted to access memory beyond the largest legal address
-# in input_concatenate_fusion_54
-ENV XLA_FLAGS="--xla_gpu_enable_triton_gemm=false --xla_disable_hlo_passes=fusion"
+ENV XLA_FLAGS="--xla_gpu_enable_triton_gemm=false"
 # # Memory settings used for folding up to 5,120 tokens on A100 80 GB.
 ENV XLA_PYTHON_CLIENT_PREALLOCATE=true
 ENV XLA_CLIENT_MEM_FRACTION=0.95
